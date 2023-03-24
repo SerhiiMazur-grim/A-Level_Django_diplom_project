@@ -1,0 +1,24 @@
+{% extends 'base_templates/base.html' %}
+
+{% block title %}Log in{% endblock title %}
+
+{% block content %}
+<h1>Tickets</h1>
+  <ul>
+    {% for ticket in tickets %}
+      <li>{{ ticket.pk }}</li>
+      <li><a href="{% url 'detail_ticket' pk=ticket.pk %}">{{ ticket.subject }}</a></li>
+      <li>{{ ticket.user }}</li>
+      <li>{{ ticket.priority }}</li>
+      <li>{{ ticket.status }}</li>
+      <li>{{ ticket.description }}</li>
+      {% if ticket.status == 'Rejected' %}
+        <form action="{% url 'update_ticket' pk=ticket.pk %}">
+          <button type="submit" class="btn btn-primary btn-sm">Restore</button>
+        </form>
+      {% endif %}
+    {% empty %}
+      <li>No tickets found.</li>
+    {% endfor %}
+  </ul>
+{% endblock content %}

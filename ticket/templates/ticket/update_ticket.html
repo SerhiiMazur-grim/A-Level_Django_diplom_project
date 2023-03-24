@@ -1,0 +1,12 @@
+{% extends 'base_templates/base.html' %}
+
+{% block title %}Log in{% endblock title %}
+
+{% block content %}
+<h1>Update Ticket</h1>
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Update</button>
+  </form>
+{% endblock content %}
