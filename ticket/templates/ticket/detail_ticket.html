@@ -10,10 +10,33 @@
       <li>{{ ticket.status }}</li>
       <li>{{ ticket.subject }}</li>
       <li>{{ ticket.description }}</li>
-
+      {% for com in ticket.get_comments %}
+      <p>{{ com.author }}: {{ com.text }}</p>
+      {% endfor %}
+      
+      {% if ticket.status == 'In progress' %}
         <form action="{% url 'update_ticket' pk=ticket.pk %}">
           <button type="submit" class="btn btn-primary btn-sm">Update Ticket</button>
         </form>
+        {% endif %}
+        {% if ticket.status == 'Rejected' %}
+        <form action="{% url 'ticket_restore' pk=ticket.pk %}" method='post'>
+          {% csrf_token %}
+          <button type="submit" class="btn btn-primary btn-sm">Restore</button>
+        </form>
+      {% endif %}
 
   </ul>
+
+  {% if ticket.status == 'In progress' %}
+  <form method="POST" action="{% url 'comment_create' pk=ticket.pk %}">
+    {% csrf_token %}
+    <div class="form-group">
+      <label for="comment-text">Коментар:</label>
+      <textarea class="form-control" id="comment-text" rows="3" name="comment_text" required></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">Додати коментар</button>
+  </form>
+  {% endif %}
+
 {% endblock content %}

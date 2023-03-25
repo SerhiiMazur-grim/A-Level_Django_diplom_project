@@ -12,11 +12,7 @@
       <li>{{ ticket.priority }}</li>
       <li>{{ ticket.status }}</li>
       <li>{{ ticket.description }}</li>
-      {% if ticket.status == 'Rejected' %}
-        <form action="{% url 'update_ticket' pk=ticket.pk %}">
-          <button type="submit" class="btn btn-primary btn-sm">Restore</button>
-        </form>
-      {% endif %}
+
     {% empty %}
       <li>No tickets found.</li>
     {% endfor %}

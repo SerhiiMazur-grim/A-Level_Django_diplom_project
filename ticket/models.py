@@ -51,4 +51,6 @@ class Ticket(models.Model):
     def restored(self):
         self.status = self.STATUS_RESTORED
         self.save()
-
+    
+    def get_comments(self):
+        return self.comments.all()

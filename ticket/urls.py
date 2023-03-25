@@ -5,6 +5,7 @@ from .views import (
     TicketCreateView,
     TicketUpdateView,
     TicketDetailView,
+    TicketRestoreView
 )
 
 
@@ -14,4 +15,5 @@ urlpatterns = [
     path('create_ticket/', TicketCreateView.as_view(), name='create_ticket'),
     path('<pk>/update_ticket/', TicketUpdateView.as_view(), name='update_ticket'),
     path('<pk>/detail_ticket/', TicketDetailView.as_view(), name='detail_ticket'),
+    path('ticket/<pk>/restore/', TicketRestoreView.as_view(), name='ticket_restore'),
 ]

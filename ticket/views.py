@@ -1,9 +1,9 @@
 from django.views.generic import ListView, CreateView, UpdateView, DetailView
+from django.views import View
+from django.shortcuts import redirect
 from django.urls import reverse_lazy
 
 from .models import Ticket
-
-
 
 
 class TicketCreateView(CreateView):
@@ -38,11 +38,21 @@ class TicketListView(ListView):
     context_object_name = 'tickets'
     
     def get_queryset(self):
-        if self.request.user.is_authenticated:
-            queryset = Ticket.objects.filter(user=self.request.user)
+        if self.request.user.is_superuser:
+            queryset = Ticket.objects.all().exclude(status=Ticket.STATUS_RESTORED)
         else:
-            queryset = Ticket.objects.none()
+            queryset = Ticket.objects.filter(user=self.request.user).exclude(status=Ticket.STATUS_RESTORED)
         return queryset
+
+
+class TicketRestoreView(View):
+    def post(self, request, *args, **kwargs):
+        ticket = self.get_object()
+        ticket.restored()
+        return redirect('tickets_list')
+
+    def get_object(self):
+        return Ticket.objects.get(pk=self.kwargs['pk'])
 
 
 class TicketLowPriorityListView(ListView):
