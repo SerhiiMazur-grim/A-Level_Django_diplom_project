@@ -3,7 +3,8 @@
 {% block title %}Log in{% endblock title %}
 
 {% block content %}
-<h1>Tickets</h1>
+
+<h1>Tickets to Restore</h1>
   <ul>
     {% for ticket in tickets %}
       <li>{{ ticket.pk }}</li>
@@ -30,4 +31,5 @@
       <li>No tickets found.</li>
     {% endfor %}
   </ul>
+
 {% endblock content %}

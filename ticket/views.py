@@ -4,6 +4,7 @@ from django.shortcuts import redirect
 from django.urls import reverse_lazy
 
 from .models import Ticket
+from comments.models import Comment
 
 
 class TicketCreateView(CreateView):
@@ -39,7 +40,7 @@ class TicketListView(ListView):
     
     def get_queryset(self):
         if self.request.user.is_superuser:
-            queryset = Ticket.objects.all().exclude(status=Ticket.STATUS_RESTORED)
+            queryset = Ticket.objects.filter(status=Ticket.STATUS_IN_PROGRESS)
         else:
             queryset = Ticket.objects.filter(user=self.request.user).exclude(status=Ticket.STATUS_RESTORED)
         return queryset
@@ -53,6 +54,53 @@ class TicketRestoreView(View):
 
     def get_object(self):
         return Ticket.objects.get(pk=self.kwargs['pk'])
+
+
+class TicketResolvedView(View):
+    def post(self, request, *args, **kwargs):
+        ticket = self.get_object()
+        ticket.resolved()
+        return redirect('tickets_list')
+
+    def get_object(self):
+        return Ticket.objects.get(pk=self.kwargs['pk'])
+
+
+class TicketRejectedView(CreateView):
+    model = Comment
+    template_name = 'ticket/ticket_reject.html'
+    fields = ['text']
+    success_url = reverse_lazy('tickets_list')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        ticket = Ticket.objects.get(pk=self.kwargs.get('pk'))
+        context['ticket'] = ticket
+        return context
+
+    def form_valid(self, form):
+        comment_text = form.cleaned_data.get('text')
+        ticket = Ticket.objects.get(pk=self.kwargs.get('pk'))
+
+        if not comment_text:
+            form.add_error('text', 'Comment cannot be empty')
+            return self.form_invalid(form)
+
+        form.instance.author = self.request.user
+        form.instance.ticket = ticket
+        form.instance.text = comment_text
+
+        ticket.rejected()
+        return super().form_valid(form)
+
+
+class TicketToRestoreListView(ListView):
+    model = Ticket
+    template_name = 'ticket/restore_tickets.html'
+    context_object_name = 'tickets'
+
+    def get_queryset(self):
+        return Ticket.objects.filter(status='Restored')
 
 
 class TicketLowPriorityListView(ListView):

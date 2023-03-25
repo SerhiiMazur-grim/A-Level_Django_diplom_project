@@ -1,0 +1,21 @@
+{% extends 'base_templates/base.html' %}
+
+{% block title %}Log in{% endblock title %}
+
+{% block content %}
+
+<h1>{{ ticket.subject }}</h1>
+<p><strong>Created by:</strong> {{ ticket.user }}</p>
+<p><strong>Priority:</strong> {{ ticket.priority }}</p>
+<p><strong>Status:</strong> {{ ticket.status }}</p>
+<p><strong>Subject:</strong> {{ ticket.subject }}</p>
+
+<h2>Reject Ticket</h2>
+<form method="post">
+  {% csrf_token %}
+  {{ form.as_p }}
+
+  <button type="submit">Reject Ticket</button>
+</form>
+
+{% endblock content %}
