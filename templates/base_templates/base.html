@@ -42,9 +42,9 @@
                     <a href="#" class="nav-link px-2 link-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">My Tickets</a>
                     <ul class="dropdown-menu">
                         <li><a class="dropdown-item" href="{% url 'tickets_list' %}">All Tickets</a></li>
-                        <li><a class="dropdown-item" href="{% url 'tickets_list' %}">Tickets In Progress</a></li>
-                        <li><a class="dropdown-item" href="{% url 'tickets_list' %}">Tickets Resolved</a></li>
-                        <li><a class="dropdown-item" href="{% url 'tickets_list' %}">Tickets Rejected</a></li>
+                        <li><a class="dropdown-item" href="{% url 'in_progress_tickets_list' %}">Tickets In Progress</a></li>
+                        <li><a class="dropdown-item" href="{% url 'resolved_tickets_list' %}">Tickets Resolved</a></li>
+                        <li><a class="dropdown-item" href="{% url 'rejected_tickets_list' %}">Tickets Rejected</a></li>
                         <li><a class="dropdown-item" href="{% url 'restore_list' %}">Tickets To Restore</a></li>
                         
                     </ul>

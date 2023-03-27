@@ -43,7 +43,7 @@ class TicketListView(ListView):
             queryset = Ticket.objects.filter(status=Ticket.STATUS_IN_PROGRESS)
         else:
             queryset = Ticket.objects.filter(user=self.request.user).exclude(status=Ticket.STATUS_RESTORED)
-        return queryset
+        return queryset.order_by('-created_at')
 
 
 class TicketRestoreView(View):
@@ -100,31 +100,44 @@ class TicketToRestoreListView(ListView):
     context_object_name = 'tickets'
 
     def get_queryset(self):
-        return Ticket.objects.filter(status='Restored')
+        queryset = Ticket.objects.filter(status='Restored')
+        return queryset.order_by('-created_at')
 
 
-class TicketLowPriorityListView(ListView):
+class TicketInProgressListView(ListView):
     model = Ticket
-    template_name = 'ticket_list.html'
+    template_name = 'ticket/in_progress_tickets.html'
     context_object_name = 'tickets'
 
     def get_queryset(self):
-        return Ticket.objects.filter(priority='low')
+        if self.request.user.is_superuser:
+            queryset = Ticket.objects.filter(status='In progress')
+        else:
+            queryset = Ticket.objects.filter(status='In progress', user=self.request.user)
+        return queryset.order_by('-created_at')
 
 
-class TicketMediumPriorityListView(ListView):
+class TicketResolvedListView(ListView):
     model = Ticket
-    template_name = 'ticket_list.html'
+    template_name = 'ticket/resolved_tickets.html'
     context_object_name = 'tickets'
 
     def get_queryset(self):
-        return Ticket.objects.filter(priority='Medium')
+        if self.request.user.is_superuser:
+            queryset = Ticket.objects.filter(status='Resolved')
+        else:
+            queryset = Ticket.objects.filter(status='Resolved', user=self.request.user)
+        return queryset.order_by('-created_at')
 
 
-class TicketHighPriorityListView(ListView):
+class TicketRejectedListView(ListView):
     model = Ticket
-    template_name = 'ticket_list.html'
+    template_name = 'ticket/rejected_tickets.html'
     context_object_name = 'tickets'
 
     def get_queryset(self):
-        return Ticket.objects.filter(priority='High')
+        if self.request.user.is_superuser:
+            queryset = Ticket.objects.filter(status='Rejected')
+        else:
+            queryset = Ticket.objects.filter(status='Rejected', user=self.request.user)
+        return queryset.order_by('-created_at')

@@ -11,7 +11,8 @@ class RedirectAuthenticationMiddleware:
 
     def __call__(self, request):
         if not request.user.is_authenticated and not request.path.startswith('/login/') \
-            and not request.path.startswith('/registration/'):
+            and not request.path.startswith('/registration/') \
+                and not request.path.startswith('/api/'):
             return redirect('/login/')
         response = self.get_response(request)
         return response

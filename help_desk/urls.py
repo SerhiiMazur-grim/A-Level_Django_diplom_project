@@ -22,6 +22,6 @@ urlpatterns = [
     path('', include('users.urls')),
     path('', include('ticket.urls')),
     path('', include('comments.urls')),
-    # path('', include('api.urls')),
+    path('', include('api.urls')),
 ]
  

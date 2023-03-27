@@ -8,9 +8,8 @@
 <p><strong>Created by:</strong> {{ ticket.user }}</p>
 <p><strong>Priority:</strong> {{ ticket.priority }}</p>
 <p><strong>Status:</strong> {{ ticket.status }}</p>
-<p><strong>Subject:</strong> {{ ticket.subject }}</p>
 
-<h2>Reject Ticket</h2>
+<h2>Reject Ticket Comment</h2>
 <form method="post">
   {% csrf_token %}
   {{ form.as_p }}
