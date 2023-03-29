@@ -14,11 +14,15 @@ from .views import (
     TicketsRejectedListAPIView,
     CommentListAPIView,
     CommentCreateAPIView,
+    CustomTokenCreateView,
 )
 
 
 urlpatterns = [
-    path('api/auth/', include('rest_framework.urls')),
+    path('api/api/auth/token/login/', CustomTokenCreateView.as_view()),
+    
+    path('api/auth/', include('djoser.urls')),
+    path('api/auth/', include('djoser.urls.authtoken')),
     
     path('api/users/', UserViewSet.as_view()),
     path('api/users/create/', UserCreateAPIView.as_view()),

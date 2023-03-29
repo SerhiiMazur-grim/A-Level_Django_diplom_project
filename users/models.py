@@ -10,7 +10,7 @@ class CustomUser(AbstractUser):
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     date_joined = models.DateTimeField(auto_now_add=True)
-    last_activity = models.DateTimeField(auto_now=True)
+    last_activity = models.DateTimeField(auto_now=True, null=True)
     actions_count = models.PositiveIntegerField(default=0)
 
     USERNAME_FIELD = 'username'
@@ -22,4 +22,8 @@ class CustomUser(AbstractUser):
     
     def increment_actions_count(self):
         self.actions_count += 1
+        self.save()
+    
+    def cls_last_activity(self):
+        self.last_activity = ''
         self.save()

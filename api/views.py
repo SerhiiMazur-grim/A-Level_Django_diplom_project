@@ -9,6 +9,10 @@ from rest_framework.generics import (
 from rest_framework.response import Response
 from rest_framework import status, serializers
 
+from djoser.views import TokenCreateView
+from djoser import utils
+from djoser.conf import settings
+
 from users.models import CustomUser
 from users.serializer import UserSerializer
 from ticket.models import Ticket
@@ -18,6 +22,20 @@ from comments.serializer import CommentSerializer
 
 from .permissions import IsOwnerOrReadOnly
 
+
+class CustomTokenCreateView(TokenCreateView):
+    serializer_class = settings.SERIALIZERS.token_create
+    permission_classes = settings.PERMISSIONS.token_create
+
+    def _action(self, serializer):
+        token = utils.login_user(self.request, serializer.user)
+        user = CustomUser.objects.get(pk=serializer.user.pk)
+        user.cls_last_activity()
+        print(serializer.user)
+        token_serializer_class = settings.SERIALIZERS.token
+        return Response(
+            data=token_serializer_class(token).data, status=status.HTTP_200_OK
+        )
 
 class UserViewSet(ListAPIView):
     queryset = CustomUser.objects.all()
