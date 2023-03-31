@@ -12,11 +12,11 @@
           </div>
           <div class="card-body">
             <ul class="list-group list-group-flush">
-              <li class="list-group-item bg-secondary text-light">User: {{ ticket.user }}</li>
-              <li class="list-group-item bg-secondary text-light">Priority: {{ ticket.priority }}</li>
-              <li class="list-group-item bg-secondary text-light">Status: {{ ticket.status }}</li>
-              <li class="list-group-item bg-secondary text-light">Subject: {{ ticket.subject }}</li>
-              <li class="list-group-item bg-secondary text-light">Description: {{ ticket.description }}</li>
+              <li class="list-group-item bg-secondary bg-dark text-light form-control"><h5>User:</h5> {{ ticket.user }}</li>
+              <li class="list-group-item bg-secondary bg-dark text-light form-control"><h5>Priority:</h5> {{ ticket.priority }}</li>
+              <li class="list-group-item bg-secondary bg-dark text-light form-control"><h5>Status:</h5> {{ ticket.status }}</li>
+              <li class="list-group-item bg-secondary bg-dark text-light form-control"><h5>Subject:</h5> {{ ticket.subject }}</li>
+              <li class="list-group-item bg-secondary bg-dark text-light form-control"><h5>Description:</h5> {{ ticket.description }}</li>
               <form action="{% url 'update_ticket' pk=ticket.pk %}">
                 <button type="submit" class="btn btn-primary mt-3 mb-3">Update Ticket</button>
               </form>
