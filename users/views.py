@@ -8,13 +8,17 @@ from .forms import CustomUserLoginForm, CustomUserCreationForm
 
 class CustomLoginView(LoginView):
     form_class = CustomUserLoginForm
-    success_url = reverse_lazy('tickets_list')
+    user_success_url = reverse_lazy('tickets_list')
+    admin_success_url = reverse_lazy('in_progress_tickets_list')
     template_name = 'users/login.html'
     
     def get_success_url(self):
-        last_login = datetime.now()
-        self.request.session['last_activity'] = last_login.strftime('%Y-%m-%dT%H:%M:%S')
-        return self.success_url
+        if self.request.user.is_staff:
+            return self.admin_success_url
+        else:
+            last_login = datetime.now()
+            self.request.session['last_activity'] = last_login.strftime('%Y-%m-%dT%H:%M:%S')
+            return self.user_success_url
 
 
 class CustomUserCreateView(CreateView):
@@ -24,7 +28,7 @@ class CustomUserCreateView(CreateView):
 
 
 class CustomLogoutView(LogoutView):
-    next_page = reverse_lazy('login')
+    next_page = reverse_lazy('login_dj')
 
     def get_next_page(self):
         return self.next_page

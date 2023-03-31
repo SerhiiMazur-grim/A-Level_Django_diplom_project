@@ -4,12 +4,15 @@ from django.shortcuts import redirect
 from django.urls import reverse_lazy
 
 from .models import Ticket
+from .forms import TicketForm
 from comments.models import Comment
+from comments.forms import CommentForm
 
 
 class TicketCreateView(CreateView):
     model = Ticket
-    fields = ['priority', 'subject', 'description']
+    form_class = TicketForm
+    # fields = ['priority', 'subject', 'description']
     template_name = 'ticket/create_ticket.html'
     success_url = reverse_lazy('tickets_list')
     context_object_name = 'ticket'
@@ -50,7 +53,7 @@ class TicketRestoreView(View):
     def post(self, request, *args, **kwargs):
         ticket = self.get_object()
         ticket.restored()
-        return redirect('tickets_list')
+        return redirect(request.META.get('HTTP_REFERER'))
 
     def get_object(self):
         return Ticket.objects.get(pk=self.kwargs['pk'])
@@ -60,17 +63,17 @@ class TicketResolvedView(View):
     def post(self, request, *args, **kwargs):
         ticket = self.get_object()
         ticket.resolved()
-        return redirect('tickets_list')
+        return redirect(request.META.get('HTTP_REFERER'))
 
     def get_object(self):
         return Ticket.objects.get(pk=self.kwargs['pk'])
 
 
 class TicketRejectedView(CreateView):
+    form_class = CommentForm
     model = Comment
     template_name = 'ticket/ticket_reject.html'
-    fields = ['text']
-    success_url = reverse_lazy('tickets_list')
+    success_url = reverse_lazy('in_progress_tickets_list')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

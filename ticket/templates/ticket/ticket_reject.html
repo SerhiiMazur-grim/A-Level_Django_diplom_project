@@ -4,7 +4,47 @@
 
 {% block content %}
 
-<h1>{{ ticket.subject }}</h1>
+<div class="container mb-5 pb-5">
+  <div class="row justify-content-center mt-5">
+    <div class="col-md-8">
+      <div class="card bg-secondary">
+        <div class="card-header">
+          <h1 class="text-center">Ticket id: {{ ticket.pk }}</h1>
+        </div>
+        <div class="card-body">
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item bg-secondary text-light">User: {{ ticket.user }}</li>
+            <li class="list-group-item bg-secondary text-light">Priority: {{ ticket.priority }}</li>
+            <li class="list-group-item bg-secondary text-light">Status: {{ ticket.status }}</li>
+            <li class="list-group-item bg-secondary text-light">Subject: {{ ticket.subject }}</li>
+            {% for com in ticket.get_comments %}
+              <li class="list-group-item bg-dark text-light form-control"><h4>
+                {% if user == com.author %}
+                You
+                {% else %}
+                {{ com.author }}
+                {% endif %}
+                :</h4> {{ com.text }}</li>
+              {% endfor %}
+
+            <form method="POST">
+              {% csrf_token %}
+              <div class="form-group mt-3">
+                <label for="comment-text">Коментар для відхилення:</label>
+                {{ form.text }}
+              </div>
+              <button type="submit" class="btn btn-primary mt-3">Додати коментар</button>
+            </form>
+
+
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% comment %} <h1>{{ ticket.subject }}</h1>
 <p><strong>Created by:</strong> {{ ticket.user }}</p>
 <p><strong>Priority:</strong> {{ ticket.priority }}</p>
 <p><strong>Status:</strong> {{ ticket.status }}</p>
@@ -15,6 +55,6 @@
   {{ form.as_p }}
 
   <button type="submit">Reject Ticket</button>
-</form>
+</form> {% endcomment %}
 
 {% endblock content %}

@@ -3,40 +3,55 @@
 {% block title %}Log in{% endblock title %}
 
 {% block content %}
-<h1>Ticket id: {{ ticket.pk }}</h1>
-  <ul>
-      <li>{{ ticket.user }}</li>
-      <li>{{ ticket.priority }}</li>
-      <li>{{ ticket.status }}</li>
-      <li>{{ ticket.subject }}</li>
-      <li>{{ ticket.description }}</li>
-      {% for com in ticket.get_comments %}
-      <p>{{ com.author }}: {{ com.text }}</p>
-      {% endfor %}
-      
-      {% if ticket.status == 'In progress' %}
-        <form action="{% url 'update_ticket' pk=ticket.pk %}">
-          <button type="submit" class="btn btn-primary btn-sm">Update Ticket</button>
-        </form>
-        {% endif %}
-        {% if ticket.status == 'Rejected' %}
-        <form action="{% url 'ticket_restore' pk=ticket.pk %}" method='post'>
-          {% csrf_token %}
-          <button type="submit" class="btn btn-primary btn-sm">Restore</button>
-        </form>
-      {% endif %}
+  <div class="container mb-5 pb-5">
+    <div class="row justify-content-center mt-5">
+      <div class="col-md-8">
+        <div class="card bg-secondary">
+          <div class="card-header">
+            <h1 class="text-center">Ticket id: {{ ticket.pk }}</h1>
+          </div>
+          <div class="card-body">
+            <ul class="list-group list-group-flush">
+              <li class="list-group-item bg-secondary text-light">User: {{ ticket.user }}</li>
+              <li class="list-group-item bg-secondary text-light">Priority: {{ ticket.priority }}</li>
+              <li class="list-group-item bg-secondary text-light">Status: {{ ticket.status }}</li>
+              <li class="list-group-item bg-secondary text-light">Subject: {{ ticket.subject }}</li>
+              <li class="list-group-item bg-secondary text-light">Description: {{ ticket.description }}</li>
+              <form action="{% url 'update_ticket' pk=ticket.pk %}">
+                <button type="submit" class="btn btn-primary mt-3 mb-3">Update Ticket</button>
+              </form>
+              {% for com in ticket.get_comments %}
+              <li class="list-group-item bg-dark text-light form-control"><h4>
+                {% if user == com.author %}
+                You
+                {% else %}
+                {{ com.author }}
+                {% endif %}
+                :</h4> {{ com.text }}</li>
+              {% endfor %}
 
-  </ul>
+              {% if ticket.status == 'In progress' %}
+              <form method="POST" action="{% url 'comment_create' pk=ticket.pk %}">
+                {% csrf_token %}
+                <div class="form-group mt-3">
+                  <label for="comment-text">Коментар:</label>
+                  <textarea class="form-control bg-dark text-light" id="comment-text" rows="3" name="comment_text" required></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary mt-3">Додати коментар</button>
+              </form>
 
-  {% if ticket.status == 'In progress' %}
-  <form method="POST" action="{% url 'comment_create' pk=ticket.pk %}">
-    {% csrf_token %}
-    <div class="form-group">
-      <label for="comment-text">Коментар:</label>
-      <textarea class="form-control" id="comment-text" rows="3" name="comment_text" required></textarea>
+              {% endif %}
+
+              {% if ticket.status == 'Rejected' %}
+              <form method="POST" action="{% url 'ticket_restore' pk=ticket.pk %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-primary mt-3">Restore</button>
+              </form>
+              {% endif %}
+            </ul>
+          </div>
+        </div>
+      </div>
     </div>
-    <button type="submit" class="btn btn-primary">Додати коментар</button>
-  </form>
-  {% endif %}
-
+  </div>
 {% endblock content %}

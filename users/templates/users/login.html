@@ -12,13 +12,18 @@
                 <form class="form-signin" method="POST">
                     {% csrf_token %}
                 <h1 class="h3 mb-3 font-weight-normal">Please sign in</h1>
-                <p>{{form.errors}}</p>
-
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger" role="alert">
+                        {% for error in form.non_field_errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
                 {{form.username}}
 
                 {{form.password}}
 
-                <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
+                <button class="btn btn-lg btn-primary btn-block my-2" type="submit">Login</button>
                 </form>
             </div>
         </div>

@@ -14,7 +14,7 @@ class CommentCreateView(View):
 
         if not comment_text:
             messages.error(request, 'Comment cannot be empty')
-            return redirect(reverse('detail_ticket', kwargs={'pk': pk}))
+            return redirect(request.META.get('HTTP_REFERER'))
 
         comment = Comment.objects.create(
             author=request.user,
@@ -22,4 +22,4 @@ class CommentCreateView(View):
             text=comment_text
         )
         messages.success(request, 'Comment added successfully')
-        return redirect(reverse('detail_ticket', kwargs={'pk': pk}))
+        return redirect(request.META.get('HTTP_REFERER'))

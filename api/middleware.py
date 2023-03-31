@@ -8,15 +8,12 @@ class AutoLogoutMiddleware:
 
     def __call__(self, request):
         response = self.get_response(request)
-        if request.user.is_authenticated and not request.user.is_superuser:
+        if request.user.is_authenticated and not request.user.is_superuser and 'Authorization' in request.headers:
             last_activity = request.user.last_activity
-            if last_activity is not None:
-                delta = timezone.now() - last_activity
-                print(f'Time delta: {delta.seconds}')
-                if delta.seconds > 60:
-                    utils.logout_user(request)
-                    print('User LOGOUT!')
-
-        response = self.get_response(request)
+            delta = timezone.now() - last_activity
+            print(f'Time delta: {delta.seconds}')
+            if delta.seconds > 60:
+                utils.logout_user(request)
+                print('User LOGOUT!')
 
         return response

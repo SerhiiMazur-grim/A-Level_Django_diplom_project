@@ -1,33 +1,14 @@
 {% extends 'base_templates/base.html' %}
 
-{% block title %}Log in{% endblock title %}
+{% block title %}Rejected Tickets{% endblock title %}
 
 {% block content %}
-<h1>Tickets Rejected</h1>
-  <ul>
-    {% for ticket in tickets %}
-      <li>{{ ticket.pk }}</li>
-      <li><a href="{% url 'detail_ticket' pk=ticket.pk %}">{{ ticket.subject }}</a></li>
-      <li>{{ ticket.user }}</li>
-      <li>{{ ticket.priority }}</li>
-      <li>{{ ticket.status }}</li>
-      <li>{{ ticket.description }}</li>
 
-      {% if user.is_superuser and ticket.status == 'In progress' %}
-      <form action="{% url 'ticket_resolve' pk=ticket.pk %}" method='post'>
-        {% csrf_token %}
-        <button type="submit" class="btn btn-primary btn-sm">Resolve Ticket</button>
-      </form>
-      {% endif %}
+<div class="container">
+    <h1>Rejected Tickets</h1>
+  
+    {% include 'ticket/base_ticket_list_view.html' %}
+  
+  </div>
 
-      {% if user.is_superuser and ticket.status == 'In progress' %}
-      <form action="{% url 'ticket_reject' pk=ticket.pk %}">
-        <button type="submit" class="btn btn-primary btn-sm">Rejected Ticket</button>
-      </form>
-      {% endif %}
-
-    {% empty %}
-      <li>No tickets found.</li>
-    {% endfor %}
-  </ul>
-{% endblock content %}
+{% endblock %}

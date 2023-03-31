@@ -1,0 +1,31 @@
+<ul class="nav col-12 col-md-auto mb-2 justify-content-center mb-md-0">
+    <li><h2 class="fw-bold">Help Desk</h2></li>
+    <li class="nav-item dropdown">
+        <a href="#" class="nav-link px-2 link-light dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">My Tickets</a>
+        <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="{% url 'tickets_list' %}">All Tickets</a></li>
+            <li><a class="dropdown-item" href="{% url 'in_progress_tickets_list' %}">In Progress Tickets</a></li>
+            <li><a class="dropdown-item" href="{% url 'resolved_tickets_list' %}">Resolved Tickets</a></li>
+            <li><a class="dropdown-item" href="{% url 'rejected_tickets_list' %}">Rejected Tickets</a></li>
+            <li><a class="dropdown-item" href="{% url 'restore_list' %}">Tickets To Restore</a></li>
+        </ul>
+    </li>
+    <li class="nav-item"><a href="{% url 'create_ticket' %}" class="nav-link px-2 link-light">New Ticket</a></li>
+</ul>
+
+<div class="col-md-3 text-end">
+    
+        <ul class="nav col-md-auto mb-2 justify-content-center mb-md-0">
+            <li class="nav-item dropdown">
+                <a href="#" class="nav-link px-2 link-light dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-person-circle" viewBox="0 0 16 16">
+                        <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/>
+                        <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1z"/>
+                    </svg>
+                {{user}}</a>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="{% url 'logout_dj' %}">Logout</a></li>
+                </ul>
+            </li>
+            <li class="nav-item"><a href="#" class="nav-link px-2 link-light">Count: {{user.actions_count}}</a></li>
+        </ul>

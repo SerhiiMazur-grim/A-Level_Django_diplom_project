@@ -13,7 +13,24 @@
                 <form class="form-signin" method="POST">
                   {% csrf_token %}
                 <h3 class="h3 mb-3 font-weight-normal">Registration</h3>
-                <p>{{form.errors}}</p>
+                
+                {% if form.username.errors %}
+                    <div class="alert alert-danger" role="alert">
+                        {% for er in form.username.errors %} {{er}} {% endfor %}
+                    </div>
+                {% endif %}
+
+                {% if form.email.errors %}
+                    <div class="alert alert-danger" role="alert">
+                        {% for er in form.email.errors %} {{er}} {% endfor %}
+                    </div>
+                {% endif %}
+
+                {% if form.password2.errors %}
+                    <div class="alert alert-danger" role="alert">
+                      {% for er in form.password2.errors %} {{er}} {% endfor %}
+                    </div>
+                {% endif %}
 
                 {{form.username}}
 
@@ -27,7 +44,7 @@
 
                 {{form.password2}}
 
-                <button class="btn btn-lg btn-primary btn-block" type="submit">Registration</button>
+                <button class="btn btn-lg btn-primary btn-block my-2" type="submit">Registration</button>
 
               </form>
             </div>
