@@ -5,6 +5,11 @@ from users.models import CustomUser
 
 
 class Ticket(models.Model):
+    
+    """
+    Model representing a ticket.
+    """
+    
     PRIORITY_LOW = 'low'
     PRIORITY_MEDIUM = 'medium'
     PRIORITY_HIGH = 'high'
@@ -38,23 +43,41 @@ class Ticket(models.Model):
         db_table = 'tickets'
 
     def __str__(self):
+        """
+        Returns the subject of the ticket as the string representation of the Ticket object.
+        """
         return self.subject
     
     def in_progress(self):
+        """
+        Changes the status of the ticket to "In progress" and saves the object.
+        """
         self.status = self.STATUS_IN_PROGRESS
         self.save()
 
     def resolved(self):
+        """
+        Changes the status of the ticket to "Resolved" and saves the object.
+        """
         self.status = self.STATUS_RESOLVED
         self.save()
 
     def rejected(self):
+        """
+        Changes the status of the ticket to "Rejected" and saves the object.
+        """
         self.status = self.STATUS_REJECTED
         self.save()
 
     def restored(self):
+        """
+        Changes the status of the ticket to "Restored" and saves the object.
+        """
         self.status = self.STATUS_RESTORED
         self.save()
     
     def get_comments(self):
+        """
+        Returns all comments associated with the ticket.
+        """
         return self.comments.all()

@@ -1,8 +1,14 @@
 from django import forms
+
 from .models import Ticket
 
 
 class TicketForm(forms.ModelForm):
+    
+    """
+    A form used to create or update a ticket.
+    """
+    
     class Meta:
         model = Ticket
         fields = ['priority', 'subject', 'description']

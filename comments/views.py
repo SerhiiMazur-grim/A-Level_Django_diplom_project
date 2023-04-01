@@ -1,6 +1,5 @@
 from django.views import View
-from django.shortcuts import render, redirect
-from django.urls import reverse
+from django.shortcuts import redirect
 from django.contrib import messages
 
 from .models import Comment
@@ -8,6 +7,11 @@ from ticket.models import Ticket
 
 
 class CommentCreateView(View):
+    
+    """
+    A view for creating comments on a ticket.
+    """
+    
     def post(self, request, pk):
         ticket = Ticket.objects.get(pk=pk)
         comment_text = request.POST.get('comment_text')

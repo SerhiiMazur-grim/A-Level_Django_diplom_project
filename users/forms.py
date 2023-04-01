@@ -5,6 +5,11 @@ from .models import CustomUser
 
 
 class CustomUserCreationForm(UserCreationForm):
+    
+    """
+    A form for creating a new user, including all the required fields plus password confirmation.
+    Inherits from the built-in UserCreationForm and adds customizations to the form fields.
+    """
 
     username = forms.CharField(required=True, widget=forms.TextInput(attrs={
         'class': 'form-control bg-dark text-light', 
@@ -39,6 +44,11 @@ class CustomUserCreationForm(UserCreationForm):
 
 
 class CustomUserLoginForm(AuthenticationForm):
+    
+    """
+    A custom authentication form for CustomUser model.
+    Inherits from AuthenticationForm which is the default Django form for authentication.
+    """
 
     username = forms.CharField(widget=forms.TextInput(attrs={
                 'class': 'form-control bg-dark text-light',

@@ -1,6 +1,6 @@
 {% extends 'base_templates/base.html' %}
 
-{% block title %}Log in{% endblock title %}
+{% block title %}Detail Ticket{% endblock title %}
 
 {% block content %}
   <div class="container mb-5 pb-5">
@@ -38,8 +38,8 @@
                   <button type="submit" class="btn btn-success mt-3">In Progress</button>
                 </form>
                 {% endif %}
-
-                {% if ticket.status == 'In progress' or ticket.status == 'Restored' and user.is_superuser %}
+                
+                {% if user.is_superuser and ticket.status == 'In progress' or ticket.status == 'Restored' %}
                 <form method="POST" action="{% url 'ticket_reject' pk=ticket.pk %}" class="d-inline">
                   {% csrf_token %}
                   <button type="submit" class="btn btn-danger mt-3">Reject</button>

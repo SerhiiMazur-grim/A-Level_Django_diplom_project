@@ -6,12 +6,24 @@ from .forms import CustomUserLoginForm, CustomUserCreationForm
 
 
 class CustomLoginView(LoginView):
+    
+    """
+    A custom view for user authentication.
+
+    The user is redirected to different URLs depending on whether they are an admin or a regular user.
+    """
+    
     form_class = CustomUserLoginForm
     user_success_url = reverse_lazy('tickets_list')
     admin_success_url = reverse_lazy('in_progress_tickets_list')
     template_name = 'users/login.html'
     
     def get_success_url(self):
+        
+        """
+        Returns the appropriate success URL based on whether the user is an admin or a regular user.
+        """
+        
         if self.request.user.is_staff:
             return self.admin_success_url
         else:
@@ -19,13 +31,32 @@ class CustomLoginView(LoginView):
 
 
 class CustomUserCreateView(CreateView):
+    
+    """
+    View for user registration.
+
+    On GET request, displays the registration form.
+    On POST request with valid form data, creates a new user and redirects to the login page.
+    """
+    
     form_class = CustomUserCreationForm
     success_url = reverse_lazy('login_dj')
     template_name = 'users/registration.html'
 
 
 class CustomLogoutView(LogoutView):
+    
+    """
+    A view that logs out the current user and redirects to the login page.
+    """
+
     next_page = reverse_lazy('login_dj')
 
     def get_next_page(self):
+        """
+        Returns the URL to redirect to after logout.
+
+        This method is used to override the `next_page` attribute so that it
+        can be constructed dynamically from the URL name.
+        """
         return self.next_page
