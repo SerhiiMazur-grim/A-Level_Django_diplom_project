@@ -1,12 +1,45 @@
 {% extends 'base_templates/base.html' %}
 
-{% block title %}Log in{% endblock title %}
+{% block title %}Update Ticket{% endblock title %}
 
 {% block content %}
-<h1>Update Ticket</h1>
-  <form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Update</button>
-  </form>
+
+<div class="container">
+  <div class="row justify-content-center mt-5">
+    <div class="col-md-5">
+      <div class="card bg-secondary">
+        <div class="card-header">
+          <h1 class="text-center">Update Ticket</h1>
+        </div>
+        <div class="card-body">
+          <form method="post">
+            {% csrf_token %}
+            <div class="mb-3">
+              {{ form.subject.label_tag }}
+              {{ form.subject }}
+              {% if form.subject.errors %}
+                <div class="invalid-feedback d-block">{{ form.subject.errors|join:", " }}</div>
+              {% endif %}
+            </div>
+            <div class="mb-3">
+              {{ form.description.label_tag }}
+              {{ form.description }}
+              {% if form.description.errors %}
+                <div class="invalid-feedback d-block">{{ form.description.errors|join:", " }}</div>
+              {% endif %}
+            </div>
+            <div class="mb-3">
+              {{ form.priority.label_tag }}
+              {{ form.priority }}
+              {% if form.priority.errors %}
+                <div class="invalid-feedback d-block">{{ form.priority.errors|join:", " }}</div>
+              {% endif %}
+            </div>
+            <button class="btn btn-lg btn-primary btn-block" type="submit">Create</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock content %}

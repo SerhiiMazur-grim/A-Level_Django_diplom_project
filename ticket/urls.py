@@ -6,6 +6,7 @@ from .views import (
     TicketUpdateView,
     TicketDetailView,
     TicketRestoreView,
+    TicketInProgressView,
     TicketResolvedView,
     TicketRejectedView,
     TicketToRestoreListView,
@@ -26,6 +27,7 @@ urlpatterns = [
     path('<pk>/update_ticket/', TicketUpdateView.as_view(), name='update_ticket'),
     path('<pk>/detail_ticket/', TicketDetailView.as_view(), name='detail_ticket'),
     path('ticket/<pk>/restore/', TicketRestoreView.as_view(), name='ticket_restore'),
+    path('ticket/<pk>/in_progress/', TicketInProgressView.as_view(), name='ticket_in_progress'),
     path('ticket/<pk>/resolve/', TicketResolvedView.as_view(), name='ticket_resolve'),
     path('ticket/<pk>/reject/', TicketRejectedView.as_view(), name='ticket_reject'),
 ]

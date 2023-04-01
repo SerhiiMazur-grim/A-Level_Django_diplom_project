@@ -9,7 +9,7 @@
     <div class="col-md-8">
       <div class="card bg-secondary">
         <div class="card-header">
-          <h1 class="text-center">Ticket id: {{ ticket.pk }}</h1>
+          <h1 class="text-center">Reject Ticket: {{ ticket.pk }}</h1>
         </div>
         <div class="card-body">
           <ul class="list-group list-group-flush">
@@ -33,7 +33,7 @@
                 <label for="comment-text">Коментар для відхилення:</label>
                 {{ form.text }}
               </div>
-              <button type="submit" class="btn btn-primary mt-3">Додати коментар</button>
+              <button type="submit" class="btn btn-danger mt-3">Reject Ticket</button>
             </form>
 
 

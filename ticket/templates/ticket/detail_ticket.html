@@ -12,16 +12,44 @@
           </div>
           <div class="card-body">
             <ul class="list-group list-group-flush">
-              <li class="list-group-item bg-secondary bg-dark text-light form-control"><h5>User:</h5> {{ ticket.user }}</li>
-              <li class="list-group-item bg-secondary bg-dark text-light form-control"><h5>Priority:</h5> {{ ticket.priority }}</li>
-              <li class="list-group-item bg-secondary bg-dark text-light form-control"><h5>Status:</h5> {{ ticket.status }}</li>
-              <li class="list-group-item bg-secondary bg-dark text-light form-control"><h5>Subject:</h5> {{ ticket.subject }}</li>
-              <li class="list-group-item bg-secondary bg-dark text-light form-control"><h5>Description:</h5> {{ ticket.description }}</li>
-              <form action="{% url 'update_ticket' pk=ticket.pk %}">
-                <button type="submit" class="btn btn-primary mt-3 mb-3">Update Ticket</button>
-              </form>
+              <li class="list-group-item  bg-secondary text-light"><h5>User:</h5> {{ ticket.user }}</li>
+              <li class="list-group-item  bg-secondary text-light"><h5>Priority:</h5> {{ ticket.priority }}</li>
+              <li class="list-group-item  bg-secondary text-light"><h5>Status:</h5> {{ ticket.status }}</li>
+              <li class="list-group-item  bg-secondary text-light"><h5>Subject:</h5> {{ ticket.subject }}</li>
+              <li class="list-group-item  bg-secondary text-light mb-2"><h5>Description:</h5> {{ ticket.description }}</li>
+              
+              {% if ticket.status == 'In progress' and ticket.user == user %}
+                <form action="{% url 'update_ticket' pk=ticket.pk %}">
+                  <button type="submit" class="btn btn-primary mt-3 mb-3">Update Ticket</button>
+                </form>
+              {% endif %}
+
+              <div class="mb-3">
+                {% if ticket.status == 'In progress' and user.is_superuser %}
+                <form method="POST" action="{% url 'ticket_resolve' pk=ticket.pk %}" class="d-inline">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-success mt-3">Resolve</button>
+                </form>
+                {% endif %}
+
+                {% if ticket.status == 'Restored' and user.is_superuser %}
+                <form method="POST" action="{% url 'ticket_in_progress' pk=ticket.pk %}" class="d-inline">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-success mt-3">In Progress</button>
+                </form>
+                {% endif %}
+
+                {% if ticket.status == 'In progress' or ticket.status == 'Restored' and user.is_superuser %}
+                <form method="POST" action="{% url 'ticket_reject' pk=ticket.pk %}" class="d-inline">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-danger mt-3">Reject</button>
+                </form>
+                {% endif %}
+              </div>
+
+              <h5>Коментарі:</h5>
               {% for com in ticket.get_comments %}
-              <li class="list-group-item bg-dark text-light form-control"><h4>
+                <li class="list-group-item bg-dark text-light form-control"><h4>
                 {% if user == com.author %}
                 You
                 {% else %}
@@ -34,7 +62,7 @@
               <form method="POST" action="{% url 'comment_create' pk=ticket.pk %}">
                 {% csrf_token %}
                 <div class="form-group mt-3">
-                  <label for="comment-text">Коментар:</label>
+                  <label for="comment-text">Ваш коментар:</label>
                   <textarea class="form-control bg-dark text-light" id="comment-text" rows="3" name="comment_text" required></textarea>
                 </div>
                 <button type="submit" class="btn btn-primary mt-3">Додати коментар</button>
@@ -42,12 +70,14 @@
 
               {% endif %}
 
-              {% if ticket.status == 'Rejected' %}
+              {% if ticket.status == 'Rejected' and not user.is_superuser %}
               <form method="POST" action="{% url 'ticket_restore' pk=ticket.pk %}">
                 {% csrf_token %}
                 <button type="submit" class="btn btn-primary mt-3">Restore</button>
               </form>
               {% endif %}
+              
+            </div>
             </ul>
           </div>
         </div>

@@ -6,28 +6,28 @@ from .models import CustomUser
 
 class CustomUserCreationForm(UserCreationForm):
 
-    username = forms.CharField(required=True, label="Username", widget=forms.TextInput(attrs={
+    username = forms.CharField(required=True, widget=forms.TextInput(attrs={
         'class': 'form-control bg-dark text-light', 
         'placeholder': 'Username'
         }))
-    email = forms.EmailField(required=True, label="Email", widget=forms.TextInput(attrs={
+    email = forms.EmailField(required=True, widget=forms.TextInput(attrs={
         'class': 'form-control bg-dark text-light', 
         'placeholder': 'Email'
         }))
-    first_name = forms.CharField(required=True, label="First Name", widget=forms.TextInput(attrs={
+    first_name = forms.CharField(required=True, widget=forms.TextInput(attrs={
         'class': 'form-control bg-dark text-light', 
         'placeholder': 'First Name'
         }))
-    last_name = forms.CharField(required=True, label="Last Name", widget=forms.TextInput(attrs={
+    last_name = forms.CharField(required=True, widget=forms.TextInput(attrs={
         'class': 'form-control bg-dark text-light', 
         'placeholder': 'Last Name'
         }))
-    password1 = forms.CharField(required=True, label="Password", widget=forms.PasswordInput(attrs={
+    password1 = forms.CharField(required=True, widget=forms.PasswordInput(attrs={
         'class': 'form-control bg-dark text-light', 
         'type': 'password', 
         'placeholder': 'Password'
         }))
-    password2 = forms.CharField(required=True, label="Confirm Password", widget=forms.PasswordInput(attrs={
+    password2 = forms.CharField(required=True, widget=forms.PasswordInput(attrs={
         'class': 'form-control bg-dark text-light', 
         'type': 'password', 
         'placeholder': 'Confirm Password'
@@ -40,15 +40,15 @@ class CustomUserCreationForm(UserCreationForm):
 
 class CustomUserLoginForm(AuthenticationForm):
 
-    username = forms.CharField(label='Enter username', widget=forms.TextInput(attrs={
+    username = forms.CharField(widget=forms.TextInput(attrs={
                 'class': 'form-control bg-dark text-light',
-                'id': 'username',
                 'placeholder':'Enter Username'
                 }))
+    
     password = forms.CharField(widget=forms.PasswordInput(attrs={
                 'class': 'form-control bg-dark text-light',
-                'id': "password",
                 'placeholder': "Password",
                 }))
+
     class Meta:
         model = CustomUser

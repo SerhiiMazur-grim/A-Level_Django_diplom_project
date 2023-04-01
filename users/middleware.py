@@ -1,6 +1,5 @@
 from django.shortcuts import redirect
 from django.contrib.auth import get_user_model
-from django.urls import reverse
 
 from help_desk import settings
 
@@ -10,8 +9,9 @@ class RedirectAuthenticationMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
-        if not request.user.is_authenticated and not request.path.startswith('/login/') \
-            and not request.path.startswith('/registration/') \
+        if not request.user.is_authenticated \
+                and not request.path.startswith('/login/') \
+                and not request.path.startswith('/registration/') \
                 and not request.path.startswith('/api/'):
             return redirect('/login/')
         response = self.get_response(request)

@@ -12,7 +12,6 @@ from comments.forms import CommentForm
 class TicketCreateView(CreateView):
     model = Ticket
     form_class = TicketForm
-    # fields = ['priority', 'subject', 'description']
     template_name = 'ticket/create_ticket.html'
     success_url = reverse_lazy('tickets_list')
     context_object_name = 'ticket'
@@ -24,10 +23,12 @@ class TicketCreateView(CreateView):
 
 class TicketUpdateView(UpdateView):
     model = Ticket
-    fields = ['priority', 'subject', 'description']
+    form_class = TicketForm
     template_name = 'ticket/update_ticket.html'
-    success_url = reverse_lazy('tickets_list')
     context_object_name = 'ticket'
+
+    def get_success_url(self):
+        return reverse_lazy('detail_ticket', kwargs={'pk': self.object.pk})
 
 
 class TicketDetailView(DetailView):
@@ -53,6 +54,16 @@ class TicketRestoreView(View):
     def post(self, request, *args, **kwargs):
         ticket = self.get_object()
         ticket.restored()
+        return redirect(request.META.get('HTTP_REFERER'))
+
+    def get_object(self):
+        return Ticket.objects.get(pk=self.kwargs['pk'])
+
+
+class TicketInProgressView(View):
+    def post(self, request, *args, **kwargs):
+        ticket = self.get_object()
+        ticket.in_progress()
         return redirect(request.META.get('HTTP_REFERER'))
 
     def get_object(self):

@@ -1,7 +1,6 @@
 from django.contrib.auth.views import LoginView, LogoutView
 from django.views.generic.edit import CreateView
 from django.urls import reverse_lazy
-from datetime import datetime
 
 from .forms import CustomUserLoginForm, CustomUserCreationForm
 
@@ -16,14 +15,12 @@ class CustomLoginView(LoginView):
         if self.request.user.is_staff:
             return self.admin_success_url
         else:
-            last_login = datetime.now()
-            self.request.session['last_activity'] = last_login.strftime('%Y-%m-%dT%H:%M:%S')
             return self.user_success_url
 
 
 class CustomUserCreateView(CreateView):
     form_class = CustomUserCreationForm
-    success_url = reverse_lazy('login')
+    success_url = reverse_lazy('login_dj')
     template_name = 'users/registration.html'
 
 

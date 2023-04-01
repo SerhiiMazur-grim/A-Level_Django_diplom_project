@@ -22,24 +22,37 @@
                 <td>
                     <a href="{% url 'detail_ticket' pk=ticket.pk %}" class="btn btn-primary">View</a>
                     {% if user.is_superuser %}
+
+                        {% if ticket.status == 'Restored' %}
+                            <span class="btn">    
+                                <form action="{% url 'ticket_in_progress' pk=ticket.pk %}" method="post">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-success">To In Progress</button>
+                                </form>
+                            </span>
+                        {% endif %}
+
+                        {% if ticket.status == 'In progress' %}
+                            <span class="btn">    
+                                <form action="{% url 'ticket_resolve' pk=ticket.pk %}" method="post">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-success">Resolve</button>
+                                </form>
+                            </span>
+                        {% endif %}
+
                         {% if ticket.status == 'In progress' or ticket.status == 'Restored' %}
-                        <span class="btn">    
-                        <form action="{% url 'ticket_resolve' pk=ticket.pk %}" method="post">
-                            {% csrf_token %}
-                            <button type="submit" class="btn btn-success">Resolve</button>
-                        </form>
-                        </span>
                             <a href="{% url 'ticket_reject' pk=ticket.pk %}" class="btn btn-danger">Reject</a>
                         {% endif %}
                     {% endif %}
-                    <span class="btn">
-                        {% if not user.is_superuser and ticket.status == 'Rejected' %}
+                    {% if not user.is_superuser and ticket.status == 'Rejected' %}
+                        <span class="btn">
                             <form action="{% url 'ticket_restore' pk=ticket.pk %}" method="post">
                                 {% csrf_token %}
                                 <button type="submit" class="btn btn-warning">Restore</button>
                             </form>
-                        {% endif %}
-                    </span>
+                        </span>
+                    {% endif %}
                 </td>
                 
             </tr>

@@ -39,6 +39,10 @@ class Ticket(models.Model):
 
     def __str__(self):
         return self.subject
+    
+    def in_progress(self):
+        self.status = self.STATUS_IN_PROGRESS
+        self.save()
 
     def resolved(self):
         self.status = self.STATUS_RESOLVED
