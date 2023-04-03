@@ -1,4 +1,13 @@
-    <table class="table text-white">
+{% extends 'base_templates/base.html' %}
+
+{% block title %}In Progress Tickets{% endblock title %}
+
+{% block content %}
+
+<div class="container">
+  <h1>{{ request.GET.status }} Tickets</h1>
+
+      <table class="table text-white">
         <thead>
             <tr>
                 <th scope="col">#</th>
@@ -64,3 +73,7 @@
         </tbody>
     </table>
  
+
+</div>
+
+{% endblock %}

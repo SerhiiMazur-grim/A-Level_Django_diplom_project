@@ -83,7 +83,7 @@ class TicketListView(ListView):
     """
     
     model = Ticket
-    template_name = 'ticket/my_tickets.html'
+    template_name = 'ticket/my_tickets_list.html'
     context_object_name = 'tickets'
     
     def get_queryset(self):
@@ -97,6 +97,29 @@ class TicketListView(ListView):
             queryset = Ticket.objects.all()
         else:
             queryset = Ticket.objects.filter(user=self.request.user).exclude(status=Ticket.STATUS_RESTORED)
+        return queryset.order_by('-created_at')
+
+
+class TicketFilterListView(ListView):
+    
+    """
+    A view that displays a filtered list of tickets based on the status parameter in the URL.
+    """
+    
+    model = Ticket
+    template_name = 'ticket/filtered_ticket_list.html'
+    context_object_name = 'tickets'
+
+    def get_queryset(self):
+        """
+        Return a queryset of tickets filtered by the status parameter in the URL.
+        """
+        status = self.request.GET.get('status')
+
+        if self.request.user.is_superuser:
+            queryset = Ticket.objects.filter(status=status)
+        else:
+            queryset = Ticket.objects.filter(status=status, user=self.request.user)
         return queryset.order_by('-created_at')
 
 
@@ -204,102 +227,3 @@ class TicketRejectedView(CreateView):
         ticket.rejected()
         messages.success(self.request, 'Ticket was successfully rejected')
         return super().form_valid(form)
-
-
-class TicketToRestoreListView(ListView):
-    
-    """
-    A view for displaying a list of tickets in 'Restored' status.
-    """
-    
-    model = Ticket
-    template_name = 'ticket/restore_tickets.html'
-    context_object_name = 'tickets'
-
-    def get_queryset(self):
-        """
-        Get the queryset for the list of tickets to display.
-        """
-        queryset = Ticket.objects.filter(status='Restored')
-        return queryset.order_by('-created_at')
-
-
-class TicketInProgressListView(ListView):
-    
-    """
-    A view that displays a list of tickets that are in progress.
-    
-    If the requesting user is a superuser, it displays all in progress tickets.
-    If the requesting user is not a superuser, it displays only their in progress tickets.
-    """
-    
-    model = Ticket
-    template_name = 'ticket/in_progress_tickets.html'
-    context_object_name = 'tickets'
-
-    def get_queryset(self):
-        """
-        Return a queryset of in progress tickets.
-        
-        If the user is a superuser, all 'in progress' tickets are returned. Otherwise,
-        only the 'in progress' tickets created by the current user are returned.
-        """
-        if self.request.user.is_superuser:
-            queryset = Ticket.objects.filter(status='In progress')
-        else:
-            queryset = Ticket.objects.filter(status='In progress', user=self.request.user)
-        return queryset.order_by('-created_at')
-
-
-class TicketResolvedListView(ListView):
-    
-    """
-    View for displaying a list of resolved tickets.
-
-    If the user is a superuser, all 'resolved' tickets are displayed. Otherwise,
-    only the 'resolved' tickets created by the current user are displayed.
-    """
-    
-    model = Ticket
-    template_name = 'ticket/resolved_tickets.html'
-    context_object_name = 'tickets'
-
-    def get_queryset(self):
-        """
-        Returns the resolved tickets queryset.
-
-        If the user is a superuser, all resolved tickets are returned. Otherwise,
-        only the resolved tickets created by the current user are returned.
-        """
-        if self.request.user.is_superuser:
-            queryset = Ticket.objects.filter(status='Resolved')
-        else:
-            queryset = Ticket.objects.filter(status='Resolved', user=self.request.user)
-        return queryset.order_by('-created_at')
-
-
-class TicketRejectedListView(ListView):
-    
-    """
-    A view that displays a list of rejected tickets.
-
-    If the current user is a superuser, all rejected tickets will be displayed.
-    Otherwise, only the rejected tickets created by the current user will be displayed.
-    """
-    
-    model = Ticket
-    template_name = 'ticket/rejected_tickets.html'
-    context_object_name = 'tickets'
-
-    def get_queryset(self):
-        """
-        Returns the queryset of tickets to be displayed in the view.
-
-        If the current user is a superuser, all 'rejected' tickets will be returned.
-        Otherwise, only the 'rejected' tickets created by the current user will be returned.
-        """
-        if self.request.user.is_superuser:
-            queryset = Ticket.objects.filter(status='Rejected')
-        else:
-            queryset = Ticket.objects.filter(status='Rejected', user=self.request.user)
-        return queryset.order_by('-created_at')
