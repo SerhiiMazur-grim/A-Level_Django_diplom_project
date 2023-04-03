@@ -14,8 +14,7 @@ class CustomLoginView(LoginView):
     """
     
     form_class = CustomUserLoginForm
-    user_success_url = reverse_lazy('tickets_list')
-    admin_success_url = reverse_lazy('in_progress_tickets_list')
+    success_url = reverse_lazy('tickets_list')
     template_name = 'users/login.html'
     
     def get_success_url(self):
@@ -25,9 +24,9 @@ class CustomLoginView(LoginView):
         """
         
         if self.request.user.is_staff:
-            return self.admin_success_url
+            return self.success_url + 'filtered/?status=In progress'
         else:
-            return self.user_success_url
+            return self.success_url
 
 
 class CustomUserCreateView(CreateView):

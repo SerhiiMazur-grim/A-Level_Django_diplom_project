@@ -7,7 +7,7 @@ from rest_framework.generics import (
     GenericAPIView,
 )
 from rest_framework.response import Response
-from rest_framework import status, serializers
+from rest_framework import status, serializers, permissions
 
 from djoser.views import TokenCreateView
 from djoser import utils
@@ -38,12 +38,14 @@ class CustomTokenCreateView(TokenCreateView):
         )
 
 class UserViewSet(ListAPIView):
+    permission_classes = [permissions.IsAdminUser]
     queryset = CustomUser.objects.all()
     serializer_class = UserSerializer
 
 
 class UserCreateAPIView(CreateAPIView):
-    queryset = CustomUser.objects.all()
+    permission_classes = [permissions.AllowAny]
+    # queryset = CustomUser.objects.all()
     serializer_class = UserSerializer
 
     def perform_create(self, serializer):
@@ -55,12 +57,13 @@ class UserTicketsListAPIView(ListAPIView):
     serializer_class = TicketSerializer
     
     def get_queryset(self):
+        print(self.request.user)
         return Ticket.objects.filter(user=self.request.user)
 
 
 class TicketCreateAPIView(CreateAPIView):
+    permission_classes = [permissions.IsAuthenticated]
     serializer_class = TicketSerializer
-
 
 class TicketUpdateAPIView(RetrieveUpdateAPIView):
     serializer_class = TicketSerializer
@@ -94,6 +97,7 @@ class TicketRestoreAPIView(GenericAPIView):
 
 class TicketResolveAPIView(GenericAPIView):
     serializer_class = TicketSerializer
+    permission_classes = [permissions.IsAdminUser]
 
     def post(self, request, pk):
         ticket = self.get_object()
@@ -108,6 +112,7 @@ class TicketResolveAPIView(GenericAPIView):
 
 class TicketRejectAPIView(CreateAPIView):
     serializer_class = CommentSerializer
+    permission_classes = [permissions.IsAdminUser]
 
     def create(self, request, *args, **kwargs):
         comment_text = request.data.get('text', '')
@@ -171,14 +176,3 @@ class CommentListAPIView(ListAPIView):
 
 class CommentCreateAPIView(CreateAPIView):
     serializer_class = CommentSerializer
-    
-    def get_queryset(self):
-        ticket = Ticket.objects.get(pk=self.kwargs['pk'])
-        return ticket
-    
-    def perform_create(self, serializer):
-        ticket = self.get_queryset()
-        if ticket.status != 'In progress':
-            raise serializers.ValidationError("You can only add comments to tickets that are 'In progress'")
-        serializer.save(author=self.request.user, ticket=ticket)
-
