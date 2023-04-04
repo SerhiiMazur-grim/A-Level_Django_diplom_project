@@ -1,4 +1,5 @@
 from django.contrib.auth.hashers import make_password
+from django.http import Http404
 from rest_framework.response import Response
 from rest_framework import status, permissions
 from rest_framework.generics import (
@@ -80,7 +81,6 @@ class UserTicketsListAPIView(ListAPIView):
     """
     
     serializer_class = TicketSerializer
-    permission_classes = [IsOwnerOrAdmin]
     
     def get_queryset(self):
         """
@@ -100,13 +100,16 @@ class UserFilterTicketsListAPIView(ListAPIView):
     """
     
     serializer_class = TicketSerializer
-    permission_classes = [IsOwnerOrAdmin]
     
     def get_queryset(self):
         """
         Returns the queryset of tickets that should be displayed in the response.
         """
         status = self.request.GET.get('status')
+        valid_statuses = [choice[0] for choice in Ticket.STATUS_CHOICES]
+        if status not in valid_statuses:
+            raise Http404("Invalid status provided.")
+        
         if self.request.user.is_staff:
             queryset = Ticket.objects.filter(status=status)
         else:
@@ -135,7 +138,11 @@ class TicketUpdateAPIView(RetrieveUpdateAPIView):
         """
         Retrieves the ticket object with the given primary key.
         """
-        obj = Ticket.objects.get(pk=self.kwargs['pk'])
+        try:
+            obj = Ticket.objects.get(pk=self.kwargs['pk'])
+        except Ticket.DoesNotExist:
+            raise Http404
+        
         return obj
 
 
@@ -152,7 +159,11 @@ class TicketDetailAPIView(RetrieveAPIView):
         """
         Retrieves the ticket object with the given primary key.
         """
-        obj = Ticket.objects.get(pk=self.kwargs['pk'])
+        try:
+            obj = Ticket.objects.get(pk=self.kwargs['pk'])
+        except Ticket.DoesNotExist:
+            raise Http404
+        
         return obj
 
 
@@ -170,9 +181,12 @@ class TicketRestoreAPIView(GenericAPIView):
         Changes the status of the ticket with the given primary key to 'restored'.
         """
         ticket = self.get_object()
-        ticket.restored()
-        serializer = self.get_serializer(ticket)
-        return Response(serializer.data)
+        if ticket.status == Ticket.STATUS_REJECTED:
+            ticket.restored()
+            serializer = self.get_serializer(ticket)
+            return Response(serializer.data)
+        raise Http404
+        
 
     def get_object(self):
         """

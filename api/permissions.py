@@ -7,8 +7,19 @@ class IsOwnerOrAdmin(permissions.BasePermission):
     Permission that allows access to superusers or the owner of the object.
     """
     
+    def has_permission(self, request, view):
+        if not request.user.is_authenticated:
+            return False
+        if request.user.is_staff:
+            return True
+        return request.user == view.get_object().user
+    
     def has_object_permission(self, request, view, obj):
-        return request.user.is_superuser or obj.user == request.user
+        if not request.user.is_authenticated:
+            return False
+        if request.user.is_staff:
+            return True
+        return request.user == view.get_object().user
 
 class IsOwner(permissions.BasePermission):
     
@@ -16,5 +27,12 @@ class IsOwner(permissions.BasePermission):
     Permission that allows access to the owner of the object.
     """
     
+    def has_permission(self, request, view):
+        if not request.user.is_authenticated:
+            return False
+        return request.user == view.get_object().user
+    
     def has_object_permission(self, request, view, obj):
-        return obj.user == request.user
+        if not request.user.is_authenticated:
+            return False
+        return request.user == view.get_object().user
