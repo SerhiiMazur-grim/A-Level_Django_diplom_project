@@ -1,4 +1,6 @@
 from django.contrib.auth.hashers import make_password
+from rest_framework.response import Response
+from rest_framework import status, permissions
 from rest_framework.generics import (
     ListAPIView,
     CreateAPIView,
@@ -6,9 +8,6 @@ from rest_framework.generics import (
     RetrieveAPIView,
     GenericAPIView,
 )
-from rest_framework.response import Response
-from rest_framework import status, serializers, permissions
-
 from djoser.views import TokenCreateView
 from djoser import utils
 from djoser.conf import settings
@@ -20,101 +19,234 @@ from ticket.serializer import TicketSerializer
 from comments.models import Comment
 from comments.serializer import CommentSerializer
 
-from .permissions import IsOwnerOrReadOnly
+from .permissions import IsOwnerOrAdmin, IsOwner
 
 
 class CustomTokenCreateView(TokenCreateView):
+    
+    """
+    A view that overrides the default TokenCreateView to include additional functionality.
+    """
+    
     serializer_class = settings.SERIALIZERS.token_create
     permission_classes = settings.PERMISSIONS.token_create
 
     def _action(self, serializer):
+        """
+        Custom method that performs the token creation action and includes additional functionality.
+        """
         token = utils.login_user(self.request, serializer.user)
         user = CustomUser.objects.get(pk=serializer.user.pk)
         user.cls_last_activity()
-        print(serializer.user)
         token_serializer_class = settings.SERIALIZERS.token
         return Response(
             data=token_serializer_class(token).data, status=status.HTTP_200_OK
         )
 
+
 class UserViewSet(ListAPIView):
+    
+    """
+    API view for users list.
+    """
+    
     permission_classes = [permissions.IsAdminUser]
     queryset = CustomUser.objects.all()
     serializer_class = UserSerializer
 
 
 class UserCreateAPIView(CreateAPIView):
+    
+    """
+    API view for creating a new user.
+    """
+    
     permission_classes = [permissions.AllowAny]
     # queryset = CustomUser.objects.all()
     serializer_class = UserSerializer
 
     def perform_create(self, serializer):
+        """
+        Creates a new user with the given data.
+        """
         password = make_password(self.request.data['password'])
         serializer.save(password=password)
 
 
 class UserTicketsListAPIView(ListAPIView):
+    
+    """
+    API view to retrieve a list of tickets associated with the authenticated user.
+    """
+    
     serializer_class = TicketSerializer
+    permission_classes = [IsOwnerOrAdmin]
     
     def get_queryset(self):
-        print(self.request.user)
-        return Ticket.objects.filter(user=self.request.user)
+        """
+        Returns a queryset of tickets associated with the authenticated user.
+        """
+        if self.request.user.is_staff:
+            queryset = Ticket.objects.all()
+        else:
+            queryset = Ticket.objects.filter(user=self.request.user).exclude(status=Ticket.STATUS_RESTORED)
+        return queryset.order_by('-created_at')
+
+
+class UserFilterTicketsListAPIView(ListAPIView):
+    
+    """
+    API view that returns a list of tickets filtered by status for a specific user.
+    """
+    
+    serializer_class = TicketSerializer
+    permission_classes = [IsOwnerOrAdmin]
+    
+    def get_queryset(self):
+        """
+        Returns the queryset of tickets that should be displayed in the response.
+        """
+        status = self.request.GET.get('status')
+        if self.request.user.is_staff:
+            queryset = Ticket.objects.filter(status=status)
+        else:
+            queryset = Ticket.objects.filter(user=self.request.user, status=status).exclude(status=Ticket.STATUS_RESTORED)
+        return queryset.order_by('-created_at')
 
 
 class TicketCreateAPIView(CreateAPIView):
+    """
+    API view to create a new ticket.
+    """
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = TicketSerializer
 
+
 class TicketUpdateAPIView(RetrieveUpdateAPIView):
+    
+    """
+    API view to retrieve and update a single ticket instance by the authenticated owner user.
+    """
+    
     serializer_class = TicketSerializer
+    permission_classes = [IsOwner]
     
     def get_object(self):
+        """
+        Retrieves the ticket object with the given primary key.
+        """
         obj = Ticket.objects.get(pk=self.kwargs['pk'])
         return obj
 
 
 class TicketDetailAPIView(RetrieveAPIView):
+    
+    """
+    A view for retrieving details of a single ticket.
+    """
+    
     serializer_class = TicketSerializer
+    permission_classes = [IsOwnerOrAdmin]
     
     def get_object(self):
+        """
+        Retrieves the ticket object with the given primary key.
+        """
         obj = Ticket.objects.get(pk=self.kwargs['pk'])
         return obj
 
 
 class TicketRestoreAPIView(GenericAPIView):
+    
+    """
+    API view for changing the status of a ticket to 'restored'.
+    """
+    
     serializer_class = TicketSerializer
+    permission_classes = [IsOwner]
 
     def post(self, request, pk):
+        """
+        Changes the status of the ticket with the given primary key to 'restored'.
+        """
         ticket = self.get_object()
         ticket.restored()
         serializer = self.get_serializer(ticket)
         return Response(serializer.data)
 
     def get_object(self):
+        """
+        Retrieves the ticket object with the given primary key.
+        """
         obj = Ticket.objects.get(pk=self.kwargs['pk'])
         return obj
 
 
 class TicketResolveAPIView(GenericAPIView):
+    
+    """
+    API view for changing the status of a ticket to 'resolved'.
+    """
+    
     serializer_class = TicketSerializer
     permission_classes = [permissions.IsAdminUser]
 
     def post(self, request, pk):
+        """
+        Changes the status of the ticket with the given primary key to 'resolved'.
+        """
         ticket = self.get_object()
         ticket.resolved()
         serializer = self.get_serializer(ticket)
         return Response(serializer.data)
 
     def get_object(self):
+        """
+        Retrieves the ticket object with the given primary key.
+        """
+        obj = Ticket.objects.get(pk=self.kwargs['pk'])
+        return obj
+
+
+class TicketInProgressAPIView(GenericAPIView):
+    
+    """
+    API view for changing the status of a ticket to 'in progress'.
+    """
+    
+    serializer_class = TicketSerializer
+    permission_classes = [permissions.IsAdminUser]
+
+    def post(self, request, pk):
+        """
+        Changes the status of the ticket with the given primary key to 'in progress'.
+        """
+        ticket = self.get_object()
+        ticket.in_progress()
+        serializer = self.get_serializer(ticket)
+        return Response(serializer.data)
+
+    def get_object(self):
+        """
+        Retrieves the ticket object with the given primary key.
+        """
         obj = Ticket.objects.get(pk=self.kwargs['pk'])
         return obj
 
 
 class TicketRejectAPIView(CreateAPIView):
+    
+    """
+    API view for rejecting a ticket and adding a comment.
+    """
+    
     serializer_class = CommentSerializer
     permission_classes = [permissions.IsAdminUser]
 
     def create(self, request, *args, **kwargs):
+        """
+        Create a comment and reject a ticket.
+        """
         comment_text = request.data.get('text', '')
         ticket = self.get_ticket()
         
@@ -129,50 +261,32 @@ class TicketRejectAPIView(CreateAPIView):
         return Response(serializer.data)
 
     def get_ticket(self):
+        """
+        Helper method to get the ticket object.
+        """
         ticket = Ticket.objects.get(pk=self.kwargs['pk'])
         return ticket
 
 
-class TicketsInProgressListAPIView(ListAPIView):
-    serializer_class = TicketSerializer
-    
-    def get_queryset(self):
-        if self.request.user.is_superuser:
-            queryset = Ticket.objects.filter(status='In progress')
-        else:
-            queryset = Ticket.objects.filter(status='In progress', user=self.request.user)
-        return queryset.order_by('-created_at')
-
-
-class TicketsResolvedListAPIView(ListAPIView):
-    serializer_class = TicketSerializer
-    
-    def get_queryset(self):
-        if self.request.user.is_superuser:
-            queryset = Ticket.objects.filter(status='Resolved')
-        else:
-            queryset = Ticket.objects.filter(status='Resolved', user=self.request.user)
-        return queryset.order_by('-created_at')
-
-
-class TicketsRejectedListAPIView(ListAPIView):
-    serializer_class = TicketSerializer
-    
-    def get_queryset(self):
-        if self.request.user.is_superuser:
-            queryset = Ticket.objects.filter(status='Rejected')
-        else:
-            queryset = Ticket.objects.filter(status='Rejected', user=self.request.user)
-        return queryset.order_by('-created_at')
-
-
 class CommentListAPIView(ListAPIView):
+    
+    """
+    API view that returns a list of comments for a specific ticket.
+    """
+    
     serializer_class = CommentSerializer
+    permission_classes = [IsOwnerOrAdmin]
 
     def get_queryset(self):
         comments = Comment.objects.filter(ticket=self.kwargs['pk'])
-        return comments
+        return comments.order_by('-created_date')
 
 
 class CommentCreateAPIView(CreateAPIView):
+    
+    """
+    API view to create a comment on a ticket.
+    """
+    
     serializer_class = CommentSerializer
+    permission_classes = [IsOwnerOrAdmin]
