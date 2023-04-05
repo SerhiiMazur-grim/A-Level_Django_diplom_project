@@ -60,10 +60,10 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     
-    # 'users.middleware.RedirectAuthenticationMiddleware',
-    # 'users.middleware.SessionLastActivityMiddleware',
-    # 'users.middleware.UserActionsMiddleware',
-    # 'api.middleware.AutoLogoutMiddleware',
+    'users.middleware.RedirectAuthenticationMiddleware',
+    'users.middleware.SessionLastActivityMiddleware',
+    'users.middleware.UserActionsMiddleware',
+    'api.middleware.AutoLogoutMiddleware',
 ]
 
 ROOT_URLCONF = 'help_desk.urls'

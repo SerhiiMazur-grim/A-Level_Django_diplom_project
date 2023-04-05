@@ -1,11 +1,14 @@
 from django.views import View
 from django.shortcuts import redirect
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
 
 from .models import Comment
 from ticket.models import Ticket
 
 
+@method_decorator(login_required, name='dispatch')
 class CommentCreateView(View):
     
     """

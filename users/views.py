@@ -1,6 +1,8 @@
 from django.contrib.auth.views import LoginView, LogoutView
 from django.views.generic.edit import CreateView
 from django.urls import reverse_lazy
+from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
 
 from .forms import CustomUserLoginForm, CustomUserCreationForm
 
@@ -33,9 +35,6 @@ class CustomUserCreateView(CreateView):
     
     """
     View for user registration.
-
-    On GET request, displays the registration form.
-    On POST request with valid form data, creates a new user and redirects to the login page.
     """
     
     form_class = CustomUserCreationForm
@@ -43,6 +42,7 @@ class CustomUserCreateView(CreateView):
     template_name = 'users/registration.html'
 
 
+@method_decorator(login_required, name='dispatch')
 class CustomLogoutView(LogoutView):
     
     """

@@ -1,5 +1,4 @@
 from django.views.generic import ListView, CreateView, UpdateView, DetailView
-from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.views import View
