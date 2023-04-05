@@ -1,6 +1,5 @@
 from django.urls import path, include
 from .views import (
-    UserViewSet,
     UserCreateAPIView,
     UserTicketsListAPIView,
     UserFilterTicketsListAPIView,
@@ -21,8 +20,6 @@ from djoser.views import TokenDestroyView
 urlpatterns = [
     path('api/auth/token/login/', CustomTokenCreateView.as_view(), name='api_login'),
     path('api/auth/token/logout/', TokenDestroyView.as_view(), name='api_logout'),
-    
-    path('api/users/', UserViewSet.as_view(), name='api_users_list'),
     path('api/user/create/', UserCreateAPIView.as_view(), name='api_create_user'),
     
     path('api/user/tickets/', UserTicketsListAPIView.as_view(), name='api_ticket_list'),

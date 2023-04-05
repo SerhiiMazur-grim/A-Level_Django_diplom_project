@@ -45,17 +45,6 @@ class CustomTokenCreateView(TokenCreateView):
         )
 
 
-class UserViewSet(ListAPIView):
-    
-    """
-    API view for users list.
-    """
-    
-    permission_classes = [permissions.IsAdminUser]
-    queryset = CustomUser.objects.all()
-    serializer_class = UserSerializer
-
-
 class UserCreateAPIView(CreateAPIView):
     
     """
@@ -210,9 +199,11 @@ class TicketResolveAPIView(GenericAPIView):
         Changes the status of the ticket with the given primary key to 'resolved'.
         """
         ticket = self.get_object()
-        ticket.resolved()
-        serializer = self.get_serializer(ticket)
-        return Response(serializer.data)
+        if ticket.status == Ticket.STATUS_IN_PROGRESS:
+            ticket.resolved()
+            serializer = self.get_serializer(ticket)
+            return Response(serializer.data)
+        raise Http404
 
     def get_object(self):
         """
@@ -244,8 +235,11 @@ class TicketInProgressAPIView(GenericAPIView):
         """
         Retrieves the ticket object with the given primary key.
         """
-        obj = Ticket.objects.get(pk=self.kwargs['pk'])
-        return obj
+        try:
+            ticket = Ticket.objects.get(pk=self.kwargs['pk'], status=Ticket.STATUS_RESTORED)
+        except Ticket.DoesNotExist:
+            raise Http404
+        return ticket
 
 
 class TicketRejectAPIView(CreateAPIView):
@@ -278,7 +272,10 @@ class TicketRejectAPIView(CreateAPIView):
         """
         Helper method to get the ticket object.
         """
-        ticket = Ticket.objects.get(pk=self.kwargs['pk'])
+        try:
+            ticket = Ticket.objects.get(pk=self.kwargs['pk'], status=Ticket.STATUS_IN_PROGRESS)
+        except Ticket.DoesNotExist:
+            raise Http404
         return ticket
 
 
@@ -304,3 +301,10 @@ class CommentCreateAPIView(CreateAPIView):
     
     serializer_class = CommentSerializer
     permission_classes = [IsOwnerOrAdmin]
+    
+    def get_object(self):
+        try:
+            ticket = Ticket.objects.get(pk=self.kwargs['pk'], status=Ticket.STATUS_IN_PROGRESS)
+        except Ticket.DoesNotExist:
+            raise Http404
+        return ticket

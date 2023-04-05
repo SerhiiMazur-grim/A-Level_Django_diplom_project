@@ -1,7 +1,6 @@
 from rest_framework.test import (
     APITestCase,
     APIClient,
-    APIRequestFactory,
 )
 from rest_framework import status
 from rest_framework.authtoken.models import Token
@@ -16,46 +15,39 @@ from comments.serializer import CommentSerializer
 
 
 class UserCreateTests(APITestCase):
-    def test_create_user_success(self):
-        url = reverse('api_create_user')
-        data = {
+    def setUp(self):
+        self.data = {
             'username': 'test_api_user',
             'email': 'test_api_user@gmail.com',
             'first_name': 'test_api',
             'last_name': 'test_api',
             'password': '791357so',
         }
-        response = self.client.post(url, data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(CustomUser.objects.count(), 1)
-        self.assertEqual(CustomUser.objects.get().username, 'test_api_user')
-    
-    def test_create_user_with_same_data(self):
-        url = reverse('api_create_user')
-        data = {
-            'username': 'test_api_user',
-            'email': 'test_api_user@gmail.com',
-            'first_name': 'test_api',
-            'last_name': 'test_api',
-            'password': '791357so',
-        }
-        response = self.client.post(url, data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(CustomUser.objects.count(), 1)
-        self.assertEqual(CustomUser.objects.get().username, 'test_api_user')
-        response = self.client.post(url, data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-    
-    def test_create_user_failure(self):
-        url = reverse('api_create_user')
-        data = {
+        self.data2 = {
             'username': 'test_api_user',
             'email': 'test_api_usergmail.com',
             'first_name': 'test_api',
             'last_name': 'test_api',
             'password': '791357so',
         }
-        response = self.client.post(url, data, format='json')
+        self.url = reverse('api_create_user')
+        
+    def test_create_user_success(self):
+        response = self.client.post(self.url, self.data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(CustomUser.objects.count(), 1)
+        self.assertEqual(CustomUser.objects.get().username, 'test_api_user')
+    
+    def test_create_user_with_same_data(self):
+        response = self.client.post(self.url, self.data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(CustomUser.objects.count(), 1)
+        self.assertEqual(CustomUser.objects.get().username, 'test_api_user')
+        response = self.client.post(self.url, self.data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+    
+    def test_create_user_failure(self):
+        response = self.client.post(self.url, self.data2)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
 
@@ -66,30 +58,24 @@ class LoginTestCase(APITestCase):
             email='testuser@example.com',
             password='testpass'
         )
-    
-    def test_login_success(self):
-        """
-        Test to verify that a user can login successfully
-        """
-        url = reverse('api_login')
-        data = {
+
+        self.url = reverse('api_login')
+        self.data = {
             'username': 'testuser',
             'password': 'testpass'
         }
-        response = self.client.post(url, data)
+        self.data2 = {
+            'username': 'testuser',
+            'password': 'wrongpassword'
+        }
+        
+    def test_login_success(self):
+        response = self.client.post(self.url, self.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn('auth_token', response.data)
     
     def test_login_failure(self):
-        """
-        Test to verify that login fails with wrong credentials
-        """
-        url = reverse('api_login')
-        data = {
-            'username': 'testuser',
-            'password': 'wrongpassword'
-        }
-        response = self.client.post(url, data)
+        response = self.client.post(self.url, self.data2)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
 
@@ -105,49 +91,11 @@ class LogoutTestCase(APITestCase):
         )
         self.token = Token.objects.create(user=self.user)
         self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token.key}')
+        self.url = reverse('api_logout')
 
     def test_user_logout(self):
-        url = reverse('api_logout')
-        response = self.client.post(url)
+        response = self.client.post(self.url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-
-
-class UserViewSetTestCase(APITestCase):
-    url = reverse('api_users_list')
-
-    def setUp(self):
-        self.client = APIClient()
-        self.admin_user = CustomUser.objects.create_superuser(
-            username='admin',
-            email='admin@example.com',
-            password='adminpassword'
-        )
-        self.client.force_authenticate(user=self.admin_user)
-
-        # Create some test users
-        CustomUser.objects.create_user(
-            username='user1',
-            email='user1@example.com',
-            password='user1password',
-            first_name='User',
-            last_name='One'
-        )
-        CustomUser.objects.create_user(
-            username='user2',
-            email='user2@example.com',
-            password='user2password',
-            first_name='User',
-            last_name='Two'
-        )
-
-    def test_list_users(self):
-        response = self.client.get(self.url)
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-        users = CustomUser.objects.all()
-        serialized_data = UserSerializer(users, many=True).data
-        self.assertEqual(response.data, serialized_data)
 
 
 class TicketCreateAPIViewTestCase(APITestCase):
@@ -478,4 +426,311 @@ class TicketRestoreAPIViewTestCase(APITestCase):
         self.assertEqual(self.ticket2.status, Ticket.STATUS_IN_PROGRESS)
 
 
+class TicketResolveAPIViewTestCase(APITestCase):
+    def setUp(self):
+        self.admin = CustomUser.objects.create_user(
+            username='admin',
+            email='admin@example.com',
+            password='testpassword',
+            is_staff=True
+        )
+        self.user = CustomUser.objects.create_user(
+            username='user',
+            email='user@example.com',
+            password='testpassword',
+        )
+        self.ticket1 = Ticket.objects.create(
+            pk = 1,
+            subject='Test ticket 1',
+            user=self.user,
+            status=Ticket.STATUS_REJECTED,
+            description='Test description 1'
+        )
+        self.ticket2 = Ticket.objects.create(
+            pk = 2,
+            subject='Test ticket 2',
+            user=self.user,
+            status=Ticket.STATUS_IN_PROGRESS,
+            description='Test description 2'
+        )
+        self.url1 = reverse('api_ticket_resolved', kwargs={'pk': self.ticket1.pk})
+        self.url2 = reverse('api_ticket_resolved', kwargs={'pk': self.ticket2.pk})
 
+    def test_unauthenticated_user(self):
+        response = self.client.post(self.url2)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_non_admin_user(self):
+        self.client.force_authenticate(user=self.user)
+        response = self.client.post(self.url2)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.ticket2.refresh_from_db()
+        self.assertEqual(self.ticket2.status, Ticket.STATUS_IN_PROGRESS)
+
+    def test_admin_user(self):
+        self.client.force_authenticate(user=self.admin)
+        response = self.client.post(self.url2)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.ticket2.refresh_from_db()
+        self.assertEqual(self.ticket2.status, Ticket.STATUS_RESOLVED)
+
+    def test_admin_user_cannot_resolve_not_in_progress_status(self):
+        self.client.force_authenticate(user=self.admin)
+        response = self.client.post(self.url1)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.ticket1.refresh_from_db()
+        self.assertEqual(self.ticket1.status, Ticket.STATUS_REJECTED)
+
+
+class TicketInProgressAPIViewTestCase(APITestCase):
+    def setUp(self):
+        self.admin = CustomUser.objects.create_user(
+            username='admin',
+            email='admin@example.com',
+            password='testpassword',
+            is_staff=True
+        )
+        self.user = CustomUser.objects.create_user(
+            username='user',
+            email='user@example.com',
+            password='testpassword',
+        )
+        self.ticket1 = Ticket.objects.create(
+            pk=1,
+            subject='Test ticket 1',
+            user=self.user,
+            status=Ticket.STATUS_RESTORED,
+            description='Test description 1'
+        )
+        self.ticket2 = Ticket.objects.create(
+            pk=2,
+            subject='Test ticket 2',
+            user=self.user,
+            status=Ticket.STATUS_REJECTED,
+            description='Test description 2'
+        )
+        self.url1 = reverse('api_ticket_in_progress', kwargs={'pk': self.ticket1.pk})
+        self.url2 = reverse('api_ticket_in_progress', kwargs={'pk': self.ticket2.pk})
+
+    def test_unauthenticated_user(self):
+        response = self.client.post(self.url1)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_non_admin_user(self):
+        self.client.force_authenticate(user=self.user)
+        response = self.client.post(self.url1)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.ticket1.refresh_from_db()
+        self.assertEqual(self.ticket1.status, Ticket.STATUS_RESTORED)
+
+    def test_admin_user_can_change_ticket_status_to_in_progress(self):
+        self.client.force_authenticate(user=self.admin)
+        response = self.client.post(self.url1)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.ticket1.refresh_from_db()
+        self.assertEqual(self.ticket1.status, Ticket.STATUS_IN_PROGRESS)
+
+    def test_admin_user_cannot_change_ticket_status_to_in_progress_if_not_restored(self):
+        self.client.force_authenticate(user=self.admin)
+        response = self.client.post(self.url2)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.ticket2.refresh_from_db()
+        self.assertEqual(self.ticket2.status, Ticket.STATUS_REJECTED)
+
+
+class TicketRejectAPIViewTestCase(APITestCase):
+    def setUp(self):
+        self.admin = CustomUser.objects.create_user(
+            username='admin',
+            email='admin@example.com',
+            password='testpassword',
+            is_staff=True
+        )
+        self.user = CustomUser.objects.create_user(
+            username='user',
+            email='user@example.com',
+            password='testpassword',
+        )
+        self.ticket1 = Ticket.objects.create(
+            pk=1,
+            subject='Test ticket 1',
+            user=self.user,
+            status=Ticket.STATUS_IN_PROGRESS,
+            description='Test description 1'
+        )
+        self.ticket2 = Ticket.objects.create(
+            pk=2,
+            subject='Test ticket 2',
+            user=self.user,
+            status=Ticket.STATUS_REJECTED,
+            description='Test description 2'
+        )
+        self.comment_data = {
+            'text': 'Test comment'
+        }
+        self.url1 = reverse('api_ticket_rejected', kwargs={'pk': self.ticket1.pk})
+        self.url2 = reverse('api_ticket_rejected', kwargs={'pk': self.ticket2.pk})
+
+    def test_unauthenticated_user(self):
+        response = self.client.post(self.url1)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_non_admin_user(self):
+        self.client.force_authenticate(user=self.user)
+        response = self.client.post(self.url1)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.ticket1.refresh_from_db()
+        self.assertEqual(self.ticket1.status, Ticket.STATUS_IN_PROGRESS)
+    
+    def test_admin_user_cannot_reject_ticket_if_not_comment_data(self):
+        self.client.force_authenticate(user=self.admin)
+        response = self.client.post(self.url1)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.ticket1.refresh_from_db()
+        self.assertEqual(self.ticket1.status, Ticket.STATUS_IN_PROGRESS)
+
+    def test_admin_user_can_reject_ticket(self):
+        self.client.force_authenticate(user=self.admin)
+        response = self.client.post(self.url1, self.comment_data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.ticket1.refresh_from_db()
+        self.assertEqual(self.ticket1.status, Ticket.STATUS_REJECTED)
+        comment = Comment.objects.last()
+        self.assertEqual(comment.text, self.comment_data['text'])
+        self.assertEqual(comment.author, self.admin)
+        self.assertEqual(comment.ticket, self.ticket1)
+
+    def test_admin_user_cannot_reject_ticket_if_not_in_progress(self):
+        self.client.force_authenticate(user=self.admin)
+        response = self.client.post(self.url2, self.comment_data)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.ticket2.refresh_from_db()
+        self.assertEqual(self.ticket2.status, Ticket.STATUS_REJECTED)
+
+
+class CommentListAPIViewTestCase(APITestCase):
+    def setUp(self):
+        self.user = CustomUser.objects.create_user(
+            username='user',
+            email='user@example.com',
+            password='testpassword',
+        )
+        self.user2 = CustomUser.objects.create_user(
+            username='user2',
+            email='user2@example.com',
+            password='testpassword',
+        )
+        self.admin = CustomUser.objects.create_user(
+            username='admin',
+            email='admin@example.com',
+            password='testpassword',
+            is_staff=True
+        )
+        self.ticket = Ticket.objects.create(
+            pk=1,
+            subject='Test ticket 1',
+            user=self.user,
+            status=Ticket.STATUS_IN_PROGRESS,
+            description='Test description 1'
+        )
+        self.comment1 = Comment.objects.create(
+            author=self.user,
+            ticket=self.ticket,
+            text='Test comment 1'
+        )
+        self.comment2 = Comment.objects.create(
+            author=self.admin,
+            ticket=self.ticket,
+            text='Test comment 2'
+        )
+        self.url = reverse('api_comment_list', kwargs={'pk': self.ticket.pk})
+
+    def test_unauthenticated_user(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_non_admin_user_can_see_their_own_comments(self):
+        self.client.force_authenticate(user=self.user)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 2)
+        self.assertEqual(response.data[0]['text'], 'Test comment 2')
+        self.assertEqual(response.data[1]['text'], 'Test comment 1')
+
+    def test_admin_user_can_see_all_comments(self):
+        self.client.force_authenticate(user=self.admin)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 2)
+        self.assertEqual(response.data[0]['text'], 'Test comment 2')
+        self.assertEqual(response.data[1]['text'], 'Test comment 1')
+    
+    def test_non_admin_user_cant_see_comments_not_own_ticket(self):
+        self.client.force_authenticate(user=self.user2)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+
+class CommentCreateAPIViewTestCase(APITestCase):
+    def setUp(self):
+        self.user = CustomUser.objects.create_user(
+            username='user',
+            email='user@example.com',
+            password='testpassword',
+        )
+        self.user2 = CustomUser.objects.create_user(
+            username='user2',
+            email='user2@example.com',
+            password='testpassword',
+        )
+        self.admin = CustomUser.objects.create_user(
+            username='admin',
+            email='admin@example.com',
+            password='testpassword',
+            is_staff=True
+        )
+        self.ticket = Ticket.objects.create(
+            pk=1,
+            subject='Test ticket 1',
+            user=self.user,
+            status=Ticket.STATUS_IN_PROGRESS,
+            description='Test description 1'
+        )
+        self.ticket2 = Ticket.objects.create(
+            pk=2,
+            subject='Test ticket 2',
+            user=self.user,
+            status=Ticket.STATUS_REJECTED,
+            description='Test description 2'
+        )
+        self.url = reverse('api_create_comment', kwargs={'pk': self.ticket.pk})
+        self.url2 = reverse('api_create_comment', kwargs={'pk': self.ticket2.pk})
+        self.data = {'text': 'Test comment'}
+
+    def test_unauthenticated_user(self):
+        response = self.client.post(self.url, self.data)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        
+    def test_non_admin_user_can_create_comment_on_own_ticket(self):
+        self.client.force_authenticate(user=self.user)
+        response = self.client.post(self.url, self.data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data['text'], 'Test comment')
+        
+    def test_non_admin_user_cant_create_comment_on_other_ticket(self):
+        self.client.force_authenticate(user=self.user2)
+        response = self.client.post(self.url, self.data)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertFalse(Comment.objects.filter(text='Test comment').exists())
+        
+    def test_user_cant_create_comment_for_non_in_progress_status(self):
+        self.client.force_authenticate(user=self.user)
+        response = self.client.post(self.url2, self.data)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertFalse(Comment.objects.filter(text='Test comment').exists())
+        
+    def test_admin_user_can_create_comment_on_any_ticket(self):
+        self.client.force_authenticate(user=self.admin)
+        response = self.client.post(self.url, self.data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data['text'], 'Test comment')
