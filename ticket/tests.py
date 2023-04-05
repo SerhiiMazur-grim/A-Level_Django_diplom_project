@@ -317,4 +317,183 @@ class TicketRejectViewTestCase(TestCase):
         self.assertEqual(self.ticket2.status, Ticket.STATUS_REJECTED)
 
 
+class TicketRestoreViewTestCase(TestCase):
+    def setUp(self):
+        self.admin = CustomUser.objects.create_user(
+            username='admin',
+            email='admin@example.com',
+            password='testpassword',
+            is_staff=True
+        )
+        self.user = CustomUser.objects.create_user(
+            username='user',
+            email='user@example.com',
+            password='testpassword',
+        )
+        self.user2 = CustomUser.objects.create_user(
+            username='user2',
+            email='user2@example.com',
+            password='testpassword',
+        )
+        self.ticket1 = Ticket.objects.create(
+            pk = 1,
+            subject='Test ticket 1',
+            user=self.user,
+            status=Ticket.STATUS_REJECTED,
+            description='Test description 1'
+        )
+        self.ticket2 = Ticket.objects.create(
+            pk = 2,
+            subject='Test ticket 2',
+            user=self.user,
+            status=Ticket.STATUS_IN_PROGRESS,
+            description='Test description 2'
+        )
+        self.url1 = reverse('ticket_restore', kwargs={'pk': self.ticket1.pk})
+        self.url2 = reverse('ticket_restore', kwargs={'pk': self.ticket2.pk})
 
+    def test_unauthenticated_user(self):
+        response = self.client.post(self.url1)
+        self.assertEqual(response.status_code, status.HTTP_302_FOUND)
+
+    def test_authenticated_user_cannot_restore_other_user_ticket(self):
+        self.client.force_login(user=self.user2)
+        response = self.client.post(self.url1)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.ticket1.refresh_from_db()
+        self.assertEqual(self.ticket1.status, Ticket.STATUS_REJECTED)
+    
+    def test_staff_user_cant_restore_any_ticket(self):
+        self.client.force_login(user=self.admin)
+        response = self.client.post(self.url1)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.ticket1.refresh_from_db()
+        self.assertEqual(self.ticket1.status, Ticket.STATUS_REJECTED)
+    
+    def test_authenticated_user_can_restore_own_ticket(self):
+        self.client.force_login(user=self.user)
+        response = self.client.post(self.url1)
+        self.assertEqual(response.status_code, status.HTTP_302_FOUND)
+        self.ticket1.refresh_from_db()
+        self.assertEqual(self.ticket1.status, Ticket.STATUS_RESTORED)
+    
+    def test_authenticated_user_cant_restore_own_ticket(self):
+        self.client.force_login(user=self.user)
+        response = self.client.post(self.url2)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.ticket2.refresh_from_db()
+        self.assertEqual(self.ticket2.status, Ticket.STATUS_IN_PROGRESS)
+
+
+class TicketInProgressViewTestCase(TestCase):
+    def setUp(self):
+        self.admin = CustomUser.objects.create_user(
+            username='admin',
+            email='admin@example.com',
+            password='testpassword',
+            is_staff=True
+        )
+        self.user = CustomUser.objects.create_user(
+            username='user',
+            email='user@example.com',
+            password='testpassword',
+        )
+        self.ticket1 = Ticket.objects.create(
+            pk=1,
+            subject='Test ticket 1',
+            user=self.user,
+            status=Ticket.STATUS_RESTORED,
+            description='Test description 1'
+        )
+        self.ticket2 = Ticket.objects.create(
+            pk=2,
+            subject='Test ticket 2',
+            user=self.user,
+            status=Ticket.STATUS_REJECTED,
+            description='Test description 2'
+        )
+        self.url = reverse('detail_ticket', kwargs={'pk': self.ticket1.pk})
+        self.url1 = reverse('ticket_in_progress', kwargs={'pk': self.ticket1.pk})
+        self.url2 = reverse('ticket_in_progress', kwargs={'pk': self.ticket2.pk})
+
+    def test_unauthenticated_user(self):
+        response = self.client.post(self.url1)
+        self.assertEqual(response.status_code, status.HTTP_302_FOUND)
+
+    def test_non_admin_user(self):
+        self.client.force_login(user=self.user)
+        response = self.client.post(self.url1)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.ticket1.refresh_from_db()
+        self.assertEqual(self.ticket1.status, Ticket.STATUS_RESTORED)
+
+    def test_admin_user_can_change_ticket_status_to_in_progress(self):
+        self.client.force_login(user=self.admin)
+        response = self.client.post(self.url1, HTTP_REFERER=self.url)
+        self.assertEqual(response.status_code, status.HTTP_302_FOUND)
+        self.ticket1.refresh_from_db()
+        self.assertEqual(self.ticket1.status, Ticket.STATUS_IN_PROGRESS)
+
+    def test_admin_user_cannot_change_ticket_status_to_in_progress_if_not_restored(self):
+        self.client.force_login(user=self.admin)
+        response = self.client.post(self.url2)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.ticket2.refresh_from_db()
+        self.assertEqual(self.ticket2.status, Ticket.STATUS_REJECTED)
+
+
+class TicketResolvedViewTestCase(TestCase):
+    def setUp(self):
+        self.admin = CustomUser.objects.create_user(
+            username='admin',
+            email='admin@example.com',
+            password='testpassword',
+            is_staff=True
+        )
+        self.user = CustomUser.objects.create_user(
+            username='user',
+            email='user@example.com',
+            password='testpassword',
+        )
+        self.ticket1 = Ticket.objects.create(
+            pk = 1,
+            subject='Test ticket 1',
+            user=self.user,
+            status=Ticket.STATUS_REJECTED,
+            description='Test description 1'
+        )
+        self.ticket2 = Ticket.objects.create(
+            pk = 2,
+            subject='Test ticket 2',
+            user=self.user,
+            status=Ticket.STATUS_IN_PROGRESS,
+            description='Test description 2'
+        )
+        self.url = reverse('detail_ticket', kwargs={'pk': self.ticket1.pk})
+        self.url1 = reverse('ticket_resolve', kwargs={'pk': self.ticket1.pk})
+        self.url2 = reverse('ticket_resolve', kwargs={'pk': self.ticket2.pk})
+
+    def test_unauthenticated_user(self):
+        response = self.client.post(self.url2)
+        self.assertEqual(response.status_code, status.HTTP_302_FOUND)
+
+    def test_non_admin_user(self):
+        self.client.force_login(user=self.user)
+        response = self.client.post(self.url2)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.ticket2.refresh_from_db()
+        self.assertEqual(self.ticket2.status, Ticket.STATUS_IN_PROGRESS)
+
+    def test_admin_user(self):
+        self.client.force_login(user=self.admin)
+        response = self.client.post(self.url2, HTTP_REFERER=self.url)
+        self.assertEqual(response.status_code, status.HTTP_302_FOUND)
+        self.ticket2.refresh_from_db()
+        self.assertEqual(self.ticket2.status, Ticket.STATUS_RESOLVED)
+
+    def test_admin_user_cannot_resolve_not_in_progress_status(self):
+        self.client.force_login(user=self.admin)
+        response = self.client.post(self.url1)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.ticket1.refresh_from_db()
+        self.assertEqual(self.ticket1.status, Ticket.STATUS_REJECTED)

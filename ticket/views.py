@@ -45,6 +45,7 @@ class TicketCreateView(CreateView):
         return super().form_invalid(form)
 
 
+@method_decorator(login_required, name='dispatch')
 class TicketUpdateView(IsOwnerPermissions, UpdateView):
     
     """
@@ -71,6 +72,7 @@ class TicketUpdateView(IsOwnerPermissions, UpdateView):
         return super().form_invalid(form)
 
 
+@method_decorator(login_required, name='dispatch')
 class TicketDetailView(IsOwnerOrAdminPermissions, DetailView):
     
     """
@@ -108,7 +110,6 @@ class TicketListView(ListView):
         return queryset.order_by('-created_at')
 
 
-
 @method_decorator(login_required, name='dispatch')
 class TicketFilterListView(ListView):
     
@@ -136,8 +137,8 @@ class TicketFilterListView(ListView):
         return queryset.order_by('-created_at')
 
 
-
-class TicketRestoreView(IsOwnerPermissions ,View):
+@method_decorator(login_required, name='dispatch')
+class TicketRestoreView(IsOwnerPermissions, View):
     
     """
     View for changing the status of a ticket to 'Restored'.
@@ -151,9 +152,11 @@ class TicketRestoreView(IsOwnerPermissions ,View):
     or to the tickets_list view if the user is not admin.
     """
         ticket = self.get_object()
-        ticket.restored()
-        messages.success(self.request, 'Ticket restored successfully')
-        return redirect('tickets_list')
+        if ticket.status == Ticket.STATUS_REJECTED:
+            ticket.restored()
+            messages.success(self.request, 'Ticket restored successfully')
+            return redirect('tickets_list')
+        raise Http404
 
     def get_object(self):
         """
@@ -166,7 +169,8 @@ class TicketRestoreView(IsOwnerPermissions ,View):
             raise Http404
 
 
-class TicketInProgressView(View):
+@method_decorator(login_required, name='dispatch')
+class TicketInProgressView(IsAdminPermissions, View):
     
     """
     View for changing the status of a ticket to 'In progress'.
@@ -174,19 +178,24 @@ class TicketInProgressView(View):
     
     def post(self, request, *args, **kwargs):
         ticket = self.get_object()
-        ticket.in_progress()
-        messages.success(self.request, 'Ticket restored successfully')
-        return redirect(request.META.get('HTTP_REFERER'))
+        if ticket.status == Ticket.STATUS_RESTORED:
+            ticket.in_progress()
+            messages.success(self.request, 'Ticket restored successfully')
+            return redirect(request.META.get('HTTP_REFERER'))
+        raise Http404
 
     def get_object(self):
         """
         Get the ticket object from the URL parameter.
         """
-        return Ticket.objects.get(pk=self.kwargs['pk'])
+        try:
+            return Ticket.objects.get(pk=self.kwargs['pk'])
+        except:
+            raise Http404
 
 
-
-class TicketResolvedView(View):
+@method_decorator(login_required, name='dispatch')
+class TicketResolvedView(IsAdminPermissions, View):
     
     """
     View for changing the status of a ticket to 'Resolved'.
@@ -194,16 +203,20 @@ class TicketResolvedView(View):
     
     def post(self, request, *args, **kwargs):
         ticket = self.get_object()
-        ticket.resolved()
-        messages.success(self.request, 'Ticket resolved successfully')
-        return redirect(request.META.get('HTTP_REFERER'))
+        if ticket.status == Ticket.STATUS_IN_PROGRESS:
+            ticket.resolved()
+            messages.success(self.request, 'Ticket resolved successfully')
+            return redirect(request.META.get('HTTP_REFERER'))
+        raise Http404
 
     def get_object(self):
         """
         Get the ticket object from the URL parameter.
         """
-        return Ticket.objects.get(pk=self.kwargs['pk'])
-
+        try:
+            return Ticket.objects.get(pk=self.kwargs['pk'])
+        except:
+            raise Http404
 
 @method_decorator(login_required, name='dispatch')
 class TicketRejectedView(IsAdminPermissions, CreateView):
