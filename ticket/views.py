@@ -1,15 +1,22 @@
 from django.views.generic import ListView, CreateView, UpdateView, DetailView
+from django.contrib.auth.decorators import permission_required
+from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
 from django.views import View
 from django.shortcuts import redirect
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from django.contrib import messages
+from django.http import Http404
 
 from .models import Ticket
 from .forms import TicketForm
 from comments.models import Comment
 from comments.forms import CommentForm
 
+from .permissions import IsOwnerPermissions, IsOwnerOrAdminPermissions, IsAdminPermissions
 
+
+@method_decorator(login_required, name='dispatch')
 class TicketCreateView(CreateView):
     
     """
@@ -38,7 +45,7 @@ class TicketCreateView(CreateView):
         return super().form_invalid(form)
 
 
-class TicketUpdateView(UpdateView):
+class TicketUpdateView(IsOwnerPermissions, UpdateView):
     
     """
     A view for updating a ticket.
@@ -64,7 +71,7 @@ class TicketUpdateView(UpdateView):
         return super().form_invalid(form)
 
 
-class TicketDetailView(DetailView):
+class TicketDetailView(IsOwnerOrAdminPermissions, DetailView):
     
     """
     A view that displays the details of a single ticket object.
@@ -75,6 +82,7 @@ class TicketDetailView(DetailView):
     context_object_name = 'ticket'
 
 
+@method_decorator(login_required, name='dispatch')
 class TicketListView(ListView):
     
     """
@@ -93,13 +101,15 @@ class TicketListView(ListView):
         Otherwise, only tickets belonging to the current user will be included,
         except for those that have been restored.
         """
-        if self.request.user.is_superuser:
+        if self.request.user.is_staff:
             queryset = Ticket.objects.all()
         else:
             queryset = Ticket.objects.filter(user=self.request.user).exclude(status=Ticket.STATUS_RESTORED)
         return queryset.order_by('-created_at')
 
 
+
+@method_decorator(login_required, name='dispatch')
 class TicketFilterListView(ListView):
     
     """
@@ -115,15 +125,19 @@ class TicketFilterListView(ListView):
         Return a queryset of tickets filtered by the status parameter in the URL.
         """
         status = self.request.GET.get('status')
+        valid_statuses = [choice[0] for choice in Ticket.STATUS_CHOICES]
+        if status not in valid_statuses:
+            raise Http404("Invalid status provided.")
 
-        if self.request.user.is_superuser:
+        if self.request.user.is_staff:
             queryset = Ticket.objects.filter(status=status)
         else:
             queryset = Ticket.objects.filter(status=status, user=self.request.user)
         return queryset.order_by('-created_at')
 
 
-class TicketRestoreView(View):
+
+class TicketRestoreView(IsOwnerPermissions ,View):
     
     """
     View for changing the status of a ticket to 'Restored'.
@@ -139,16 +153,17 @@ class TicketRestoreView(View):
         ticket = self.get_object()
         ticket.restored()
         messages.success(self.request, 'Ticket restored successfully')
-        if self.request.user.is_staff:
-            return redirect('rejected_tickets_list')
-        else:
-            return redirect('tickets_list')
+        return redirect('tickets_list')
 
     def get_object(self):
         """
         Get the ticket object from the URL parameter.
         """
-        return Ticket.objects.get(pk=self.kwargs['pk'])
+        try:
+            ticket = Ticket.objects.get(pk=self.kwargs['pk'])
+            return ticket
+        except:
+            raise Http404
 
 
 class TicketInProgressView(View):
@@ -170,6 +185,7 @@ class TicketInProgressView(View):
         return Ticket.objects.get(pk=self.kwargs['pk'])
 
 
+
 class TicketResolvedView(View):
     
     """
@@ -189,7 +205,8 @@ class TicketResolvedView(View):
         return Ticket.objects.get(pk=self.kwargs['pk'])
 
 
-class TicketRejectedView(CreateView):
+@method_decorator(login_required, name='dispatch')
+class TicketRejectedView(IsAdminPermissions, CreateView):
     
     """
     A view for rejecting a ticket and adding a comment to it.
@@ -198,7 +215,14 @@ class TicketRejectedView(CreateView):
     form_class = CommentForm
     model = Comment
     template_name = 'ticket/ticket_reject.html'
-    success_url = reverse_lazy('in_progress_tickets_list')
+    
+    def get_success_url(self):
+        """
+        Get the URL to redirect to after a successful form submission.
+        """
+        status = Ticket.STATUS_IN_PROGRESS
+        url = reverse('filter_tickets_list')
+        return f"{url}?status={status}"
 
     def get_context_data(self, **kwargs):
         """
@@ -206,8 +230,10 @@ class TicketRejectedView(CreateView):
         """
         context = super().get_context_data(**kwargs)
         ticket = Ticket.objects.get(pk=self.kwargs.get('pk'))
-        context['ticket'] = ticket
-        return context
+        if ticket.status == Ticket.STATUS_IN_PROGRESS:
+            context['ticket'] = ticket
+            return context
+        raise Http404
 
     def form_valid(self, form):
         """
@@ -215,6 +241,8 @@ class TicketRejectedView(CreateView):
         """
         comment_text = form.cleaned_data.get('text')
         ticket = Ticket.objects.get(pk=self.kwargs.get('pk'))
+        if ticket.status != Ticket.STATUS_IN_PROGRESS:
+            raise Http404
 
         if not comment_text:
             form.add_error('text', 'Comment cannot be empty')
