@@ -42,7 +42,6 @@ class CustomUserCreateView(CreateView):
     template_name = 'users/registration.html'
 
 
-@method_decorator(login_required, name='dispatch')
 class CustomLogoutView(LogoutView):
     
     """

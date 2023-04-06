@@ -8,7 +8,6 @@ from .models import Comment
 from ticket.models import Ticket
 
 
-@method_decorator(login_required, name='dispatch')
 class CommentCreateView(View):
     
     """

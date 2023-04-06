@@ -36,7 +36,7 @@ class TicketCreateViewTestCase(TestCase):
     def test_create_ticket_not_auth_user(self):
         response = self.client.post(self.url, data=self.data)
         self.assertEqual(response.status_code, status.HTTP_302_FOUND)
-        self.assertEqual(response.url, '/accounts/login/?next=/create_ticket/')
+        self.assertEqual(response.url, '/login/')
         self.assertEqual(Ticket.objects.count(), 0)
 
 
@@ -180,7 +180,7 @@ class TicketListViewTestCase(TestCase):
     def test_ticket_list_not_login_user(self):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_302_FOUND)
-        self.assertEqual(response.url, '/accounts/login/?next=/tickets_list/')
+        self.assertEqual(response.url, '/login/')
 
 
 class TicketFilterListViewTestCase(TestCase):
@@ -239,7 +239,7 @@ class TicketFilterListViewTestCase(TestCase):
     def test_filter_tickets_by_status_as_unauthenticated_user(self):
         response = self.client.get(self.url, {'status': Ticket.STATUS_IN_PROGRESS})
         self.assertEqual(response.status_code, status.HTTP_302_FOUND)
-        self.assertEqual(response.url, '/accounts/login/?next=/tickets_list/filtered/%3Fstatus%3DIn%2Bprogress')
+        self.assertEqual(response.url, '/login/')
 
     def test_filter_tickets_by_invalid_status(self):
         self.client.force_login(user=self.user)

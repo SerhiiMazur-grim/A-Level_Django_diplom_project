@@ -15,7 +15,6 @@ from comments.forms import CommentForm
 from .permissions import IsOwnerPermissions, IsOwnerOrAdminPermissions, IsAdminPermissions
 
 
-@method_decorator(login_required, name='dispatch')
 class TicketCreateView(CreateView):
     
     """
@@ -44,7 +43,6 @@ class TicketCreateView(CreateView):
         return super().form_invalid(form)
 
 
-@method_decorator(login_required, name='dispatch')
 class TicketUpdateView(IsOwnerPermissions, UpdateView):
     
     """
@@ -71,7 +69,6 @@ class TicketUpdateView(IsOwnerPermissions, UpdateView):
         return super().form_invalid(form)
 
 
-@method_decorator(login_required, name='dispatch')
 class TicketDetailView(IsOwnerOrAdminPermissions, DetailView):
     
     """
@@ -83,7 +80,6 @@ class TicketDetailView(IsOwnerOrAdminPermissions, DetailView):
     context_object_name = 'ticket'
 
 
-@method_decorator(login_required, name='dispatch')
 class TicketListView(ListView):
     
     """
@@ -109,7 +105,6 @@ class TicketListView(ListView):
         return queryset.order_by('-created_at')
 
 
-@method_decorator(login_required, name='dispatch')
 class TicketFilterListView(ListView):
     
     """
@@ -136,7 +131,6 @@ class TicketFilterListView(ListView):
         return queryset.order_by('-created_at')
 
 
-@method_decorator(login_required, name='dispatch')
 class TicketRestoreView(IsOwnerPermissions, View):
     
     """
@@ -168,7 +162,6 @@ class TicketRestoreView(IsOwnerPermissions, View):
             raise Http404
 
 
-@method_decorator(login_required, name='dispatch')
 class TicketInProgressView(IsAdminPermissions, View):
     
     """
@@ -193,7 +186,6 @@ class TicketInProgressView(IsAdminPermissions, View):
             raise Http404
 
 
-@method_decorator(login_required, name='dispatch')
 class TicketResolvedView(IsAdminPermissions, View):
     
     """
@@ -217,7 +209,7 @@ class TicketResolvedView(IsAdminPermissions, View):
         except:
             raise Http404
 
-@method_decorator(login_required, name='dispatch')
+
 class TicketRejectedView(IsAdminPermissions, CreateView):
     
     """

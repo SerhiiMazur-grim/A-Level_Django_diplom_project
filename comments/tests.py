@@ -32,9 +32,14 @@ class CommentCreateViewTestCase(TestCase):
         self.assertEqual(Comment.objects.count(), 1)
         self.assertEqual(Comment.objects.first().text, 'Test comment')
 
-    def test_comment_create_fail(self):
+    def test_comment_create_failed(self):
         self.client.force_login(self.user)
         response = self.client.post(self.url, self.data2, HTTP_REFERER=self.url)
+        self.assertEqual(response.status_code, status.HTTP_302_FOUND)
+        self.assertEqual(Comment.objects.count(), 0)
+    
+    def test_comment_create_by_not_auth_user(self):
+        response = self.client.post(self.url, self.data, HTTP_REFERER=self.url)
         self.assertEqual(response.status_code, status.HTTP_302_FOUND)
         self.assertEqual(Comment.objects.count(), 0)
 
