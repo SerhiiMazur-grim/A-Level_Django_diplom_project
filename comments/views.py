@@ -1,8 +1,7 @@
 from django.views import View
 from django.shortcuts import redirect
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
-from django.utils.decorators import method_decorator
+from django.http import Http404
 
 from .models import Comment
 from ticket.models import Ticket
@@ -15,7 +14,10 @@ class CommentCreateView(View):
     """
     
     def post(self, request, pk):
-        ticket = Ticket.objects.get(pk=pk)
+        try:
+            ticket = Ticket.objects.get(pk=pk)
+        except Ticket.DoesNotExist:
+            raise Http404('No object with the given primary key.')
         comment_text = request.POST.get('comment_text')
 
         if not comment_text:

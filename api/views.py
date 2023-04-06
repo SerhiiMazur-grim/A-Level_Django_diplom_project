@@ -130,8 +130,7 @@ class TicketUpdateAPIView(RetrieveUpdateAPIView):
         try:
             obj = Ticket.objects.get(pk=self.kwargs['pk'])
         except Ticket.DoesNotExist:
-            raise Http404
-        
+            raise Http404('No object with the given primary key.')
         return obj
 
 
@@ -151,8 +150,7 @@ class TicketDetailAPIView(RetrieveAPIView):
         try:
             obj = Ticket.objects.get(pk=self.kwargs['pk'])
         except Ticket.DoesNotExist:
-            raise Http404
-        
+            raise Http404('No object with the given primary key.')
         return obj
 
 
@@ -174,14 +172,18 @@ class TicketRestoreAPIView(GenericAPIView):
             ticket.restored()
             serializer = self.get_serializer(ticket)
             return Response(serializer.data)
-        raise Http404
+        raise Http404('Can`t restore this ticket.')
         
 
     def get_object(self):
         """
         Retrieves the ticket object with the given primary key.
         """
-        obj = Ticket.objects.get(pk=self.kwargs['pk'])
+        try:
+            obj = Ticket.objects.get(pk=self.kwargs['pk'])
+        except Ticket.DoesNotExist:
+            raise Http404('No object with the given primary key.')
+        
         return obj
 
 
@@ -209,7 +211,11 @@ class TicketResolveAPIView(GenericAPIView):
         """
         Retrieves the ticket object with the given primary key.
         """
-        obj = Ticket.objects.get(pk=self.kwargs['pk'])
+        try:
+            obj = Ticket.objects.get(pk=self.kwargs['pk'])
+        except Ticket.DoesNotExist:
+            raise Http404('No object with the given primary key.')
+        
         return obj
 
 
@@ -238,7 +244,7 @@ class TicketInProgressAPIView(GenericAPIView):
         try:
             ticket = Ticket.objects.get(pk=self.kwargs['pk'], status=Ticket.STATUS_RESTORED)
         except Ticket.DoesNotExist:
-            raise Http404
+            raise Http404('No object with the given primary key or status.')
         return ticket
 
 
@@ -275,7 +281,7 @@ class TicketRejectAPIView(CreateAPIView):
         try:
             ticket = Ticket.objects.get(pk=self.kwargs['pk'], status=Ticket.STATUS_IN_PROGRESS)
         except Ticket.DoesNotExist:
-            raise Http404
+            raise Http404('No object with the given primary key or status.')
         return ticket
 
 
@@ -289,7 +295,10 @@ class CommentListAPIView(ListAPIView):
     permission_classes = [IsOwnerOrAdmin]
 
     def get_queryset(self):
-        comments = Comment.objects.filter(ticket=self.kwargs['pk'])
+        try:
+            comments = Comment.objects.filter(ticket=self.kwargs['pk'])
+        except Comment.DoesNotExist:
+            raise Http404('No objects with the given primary key.')
         return comments.order_by('-created_date')
 
 
@@ -306,5 +315,5 @@ class CommentCreateAPIView(CreateAPIView):
         try:
             ticket = Ticket.objects.get(pk=self.kwargs['pk'], status=Ticket.STATUS_IN_PROGRESS)
         except Ticket.DoesNotExist:
-            raise Http404
+            raise Http404('No object with the given primary key or status.')
         return ticket

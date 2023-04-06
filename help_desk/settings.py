@@ -62,7 +62,7 @@ MIDDLEWARE = [
     
     'users.middleware.RedirectAuthenticationMiddleware',
     'users.middleware.SessionLastActivityMiddleware',
-    'users.middleware.UserActionsMiddleware',
+    # 'users.middleware.UserActionsMiddleware',
     'api.middleware.AutoLogoutMiddleware',
 ]
 
@@ -142,6 +142,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 SESSION_COOKIE_AGE_LAST_ACTIVITY = 60
+
+TOKEN_AGE_LAST_ACTIVITY = 60
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [

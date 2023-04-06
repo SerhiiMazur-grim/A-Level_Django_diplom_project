@@ -1,8 +1,6 @@
 from django.contrib.auth.views import LoginView, LogoutView
 from django.views.generic.edit import CreateView
 from django.urls import reverse_lazy
-from django.contrib.auth.decorators import login_required
-from django.utils.decorators import method_decorator
 
 from .forms import CustomUserLoginForm, CustomUserCreationForm
 
