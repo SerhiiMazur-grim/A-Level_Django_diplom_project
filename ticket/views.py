@@ -234,7 +234,7 @@ class TicketRejectedView(IsAdminPermissions, CreateView):
         """
         context = super().get_context_data(**kwargs)
         ticket = Ticket.objects.get(pk=self.kwargs.get('pk'))
-        if ticket.status == Ticket.STATUS_IN_PROGRESS:
+        if ticket.status == Ticket.STATUS_IN_PROGRESS or ticket.status == Ticket.STATUS_RESTORED:
             context['ticket'] = ticket
             return context
         raise Http404
@@ -245,17 +245,17 @@ class TicketRejectedView(IsAdminPermissions, CreateView):
         """
         comment_text = form.cleaned_data.get('text')
         ticket = Ticket.objects.get(pk=self.kwargs.get('pk'))
-        if ticket.status != Ticket.STATUS_IN_PROGRESS:
-            raise Http404
+        if ticket.status == Ticket.STATUS_IN_PROGRESS or ticket.status == Ticket.STATUS_RESTORED:
+            if not comment_text:
+                form.add_error('text', 'Comment cannot be empty')
+                return self.form_invalid(form)
+        
+            form.instance.author = self.request.user
+            form.instance.ticket = ticket
+            form.instance.text = comment_text
 
-        if not comment_text:
-            form.add_error('text', 'Comment cannot be empty')
-            return self.form_invalid(form)
+            ticket.rejected()
+            messages.success(self.request, 'Ticket was successfully rejected')
+            return super().form_valid(form)
 
-        form.instance.author = self.request.user
-        form.instance.ticket = ticket
-        form.instance.text = comment_text
-
-        ticket.rejected()
-        messages.success(self.request, 'Ticket was successfully rejected')
-        return super().form_valid(form)
+        raise Http404

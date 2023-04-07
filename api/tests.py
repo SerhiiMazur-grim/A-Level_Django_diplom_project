@@ -7,11 +7,9 @@ from rest_framework.authtoken.models import Token
 from django.urls import reverse
 
 from users.models import CustomUser
-from users.serializer import UserSerializer
 from ticket.models import Ticket
 from ticket.serializer import TicketSerializer
 from comments.models import Comment
-from comments.serializer import CommentSerializer
 
 
 class UserCreateTests(APITestCase):

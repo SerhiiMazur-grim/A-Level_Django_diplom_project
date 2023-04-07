@@ -62,7 +62,7 @@ MIDDLEWARE = [
     
     'users.middleware.RedirectAuthenticationMiddleware',
     'users.middleware.SessionLastActivityMiddleware',
-    # 'users.middleware.UserActionsMiddleware',
+    'users.middleware.UserActionsMiddleware',
     'api.middleware.AutoLogoutMiddleware',
 ]
 
