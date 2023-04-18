@@ -10,7 +10,8 @@ class IsOwnerPermissions(UserPassesTestMixin):
         if self.request.user.is_authenticated:
             ticket = self.get_object()
             return ticket.user == self.request.user
-        raise Http404
+        return False
+        # raise Http404
 
 
 class IsOwnerOrAdminPermissions(UserPassesTestMixin):
@@ -23,7 +24,8 @@ class IsOwnerOrAdminPermissions(UserPassesTestMixin):
                 return True
             ticket = self.get_object()
             return ticket.user == self.request.user
-        raise Http404
+        return False
+        # raise Http404
 
 
 class IsAdminPermissions(UserPassesTestMixin):
@@ -33,4 +35,5 @@ class IsAdminPermissions(UserPassesTestMixin):
         """
         if self.request.user.is_authenticated and self.request.user.is_staff:
             return True
-        raise Http404
+        return False
+        # raise Http404

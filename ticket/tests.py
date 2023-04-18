@@ -287,7 +287,7 @@ class TicketRejectViewTestCase(TestCase):
     def test_non_admin_user(self):
         self.client.force_login(user=self.user)
         response = self.client.post(self.url1)
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.ticket1.refresh_from_db()
         self.assertEqual(self.ticket1.status, Ticket.STATUS_IN_PROGRESS)
     
@@ -423,7 +423,7 @@ class TicketInProgressViewTestCase(TestCase):
     def test_non_admin_user(self):
         self.client.force_login(user=self.user)
         response = self.client.post(self.url1)
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.ticket1.refresh_from_db()
         self.assertEqual(self.ticket1.status, Ticket.STATUS_RESTORED)
 
@@ -480,7 +480,7 @@ class TicketResolvedViewTestCase(TestCase):
     def test_non_admin_user(self):
         self.client.force_login(user=self.user)
         response = self.client.post(self.url2)
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.ticket2.refresh_from_db()
         self.assertEqual(self.ticket2.status, Ticket.STATUS_IN_PROGRESS)
 
